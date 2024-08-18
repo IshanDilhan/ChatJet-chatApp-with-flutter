@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"chatjet-chatapp","appId":"1:839482886799:android:1b4deba7720fe0ddce7efa","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"chatjet-chatapp","configurations":{"android":"1:839482886799:android:1b4deba7720fe0ddce7efa","ios":"1:839482886799:ios:c34db2f5546a0a94ce7efa"}}}}}}

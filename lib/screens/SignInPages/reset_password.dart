@@ -1,16 +1,25 @@
+import 'package:chatapp/controlers/user_controler.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ResetPasswordPage extends StatelessWidget {
+class ResetPasswordPage extends StatefulWidget {
   const ResetPasswordPage({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _ResetPasswordPageState createState() => _ResetPasswordPageState();
+}
+
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final UserController _userController = UserController();
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
-      // ignore: sized_box_for_whitespace
-      body: Container(
+      body: SizedBox(
         width: double.infinity,
         height: size.height,
         child: Stack(
@@ -66,7 +75,7 @@ class ResetPasswordPage extends StatelessWidget {
                     "RESET PASSWORD",
                     style: GoogleFonts.acme(
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue, // Green color
+                      color: Colors.blue,
                       fontSize: 42,
                     ),
                     textAlign: TextAlign.left,
@@ -76,8 +85,9 @@ class ResetPasswordPage extends StatelessWidget {
                 Container(
                   alignment: Alignment.center,
                   margin: const EdgeInsets.symmetric(horizontal: 40),
-                  child: const TextField(
-                    decoration: InputDecoration(labelText: "Email"),
+                  child: TextField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: "Email"),
                   ),
                 ),
                 SizedBox(height: size.height * 0.03),
@@ -86,7 +96,10 @@ class ResetPasswordPage extends StatelessWidget {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _userController.resetPassword(
+                          email: _emailController.text, context: context);
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(0),
                       shape: RoundedRectangleBorder(

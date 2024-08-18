@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "839482886799",
+    "project_id": "chatjet-chatapp",
+    "storage_bucket": "chatjet-chatapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839482886799:android:1b4deba7720fe0ddce7efa",
+        "android_client_info": {
+          "package_name": "com.example.chatapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrTKV3sQk7UL_krkYzLX0ydEKU98cYdJ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

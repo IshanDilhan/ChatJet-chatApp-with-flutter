@@ -1,3 +1,5 @@
+import 'package:chatapp/controlers/user_controler.dart';
+import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -76,8 +78,24 @@ class HomePage extends StatelessWidget {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to other pages or add functionality here
+                    onPressed: () async {
+                      UserController userController = UserController();
+                      try {
+                        await userController.signOut();
+                        // Navigate to login page after logout
+                        Navigator.pushReplacement(
+                          // ignore: use_build_context_synchronously
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginScreen()),
+                        );
+                      } catch (error) {
+                        // Handle logout error
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Logout failed: $error')),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.all(0),
@@ -100,7 +118,7 @@ class HomePage extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.all(0),
                       child: const Text(
-                        "EXPLORE",
+                        "Logout",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
