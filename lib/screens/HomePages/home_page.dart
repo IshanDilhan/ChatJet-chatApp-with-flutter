@@ -17,11 +17,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserData(context);
   }
 
-  Logger _logger = Logger();
-  Future<void> _loadUserData() async {
+  final Logger _logger = Logger();
+  Future<void> _loadUserData(context) async {
     try {
       await Provider.of<UserProvider>(context, listen: false).loadUserData();
       final user = Provider.of<UserProvider>(context, listen: false).user;

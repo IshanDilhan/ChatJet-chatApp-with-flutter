@@ -23,6 +23,13 @@ class UserProvider with ChangeNotifier {
       if (userDoc.exists) {
         _user = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
         _logger.i("User data loaded successfully for UID: ${currentUser.uid}");
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .update({
+          'lastLogin': Timestamp
+              .now(), // Use Timestamp.now() for the current date and time
+        });
         notifyListeners();
       } else {
         _logger.w("User data not found for UID: ${currentUser.uid}");
