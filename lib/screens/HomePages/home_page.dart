@@ -1,13 +1,44 @@
 import 'package:chatapp/controlers/user_controler.dart';
+import 'package:chatapp/providers/user_provider.dart';
+
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/web.dart';
+import 'package:provider/provider.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Logger _logger = Logger();
+  Future<void> _loadUserData() async {
+    try {
+      await Provider.of<UserProvider>(context, listen: false).loadUserData();
+      final user = Provider.of<UserProvider>(context, listen: false).user;
+      if (user != null) {
+        _logger.i("User data loaded successfully: ${user.username}");
+      } else {
+        _logger.w("User data could not be loaded.");
+      }
+    } catch (error) {
+      _logger.e("Error loading user data: $error");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    final fretcheduser = Provider.of<UserProvider>(context).user;
 
     return Scaffold(
       // ignore: sized_box_for_whitespace
@@ -62,9 +93,9 @@ class HomePage extends StatelessWidget {
               children: <Widget>[
                 Container(
                   alignment: Alignment.center,
-                  child: const Text(
-                    "Welcome to the Home Page!",
-                    style: TextStyle(
+                  child: Text(
+                    "Hello, ${fretcheduser?.username ?? 'User'}!",
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF2661FA),
                       fontSize: 24,

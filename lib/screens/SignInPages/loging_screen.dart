@@ -1,7 +1,7 @@
 import 'package:chatapp/controlers/user_controler.dart';
 import 'package:chatapp/screens/SignInPages/reset_password.dart';
 import 'package:chatapp/screens/SignInPages/sign_up.dart';
-import 'package:chatapp/screens/home_page.dart';
+import 'package:chatapp/screens/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';

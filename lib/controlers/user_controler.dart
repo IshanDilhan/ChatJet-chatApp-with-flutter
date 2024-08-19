@@ -1,6 +1,6 @@
 import 'package:chatapp/models/user_model.dart';
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
-import 'package:chatapp/screens/home_page.dart';
+import 'package:chatapp/screens/main_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
