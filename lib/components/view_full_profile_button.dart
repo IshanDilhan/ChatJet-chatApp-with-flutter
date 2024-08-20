@@ -26,13 +26,13 @@ class ViewMoreButton extends StatelessWidget {
         child: Row(
           children: [
             const Icon(
-              Icons.more_horiz,
+              Icons.view_kanban_rounded,
               color: Color(0xFF2661FA),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Text(
-                isExpanded ? 'View Less' : 'View Full',
+                isExpanded ? 'View Less' : 'View Full ',
                 style: const TextStyle(
                   color: Colors.black,
                 ),

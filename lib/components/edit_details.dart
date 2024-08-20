@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 
-class ProfileMenuItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+class EditDetailsButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool isExpanded;
 
-  const ProfileMenuItem({
+  const EditDetailsButton({
     super.key,
-    required this.icon,
-    required this.text,
     required this.onPressed,
     required this.isExpanded,
   });
@@ -29,19 +25,20 @@ class ProfileMenuItem extends StatelessWidget {
         onPressed: onPressed,
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: const Color(0xFF2661FA),
+            const Icon(
+              Icons.edit,
+              color: Color(0xFF2661FA),
             ),
             const SizedBox(width: 20),
-            Expanded(
+            const Expanded(
               child: Text(
-                text,
-                style: const TextStyle(
+                'Edit Profile',
+                style: TextStyle(
                   color: Colors.black,
                 ),
               ),
             ),
+            const SizedBox(width: 10),
             Transform.rotate(
               angle: isExpanded
                   ? -3.14 / 2
