@@ -1,3 +1,4 @@
+import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,9 +105,142 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // void updateUser(UserModel user) {
-  //   _user = user;
-  //   _logger.i("User data updated for UID: ${user.uid}");
-  //   notifyListeners();
-  // }
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+    required BuildContext context,
+  }) async {
+    try {
+      // Validate the new password
+      if (newPassword != confirmPassword) {
+        _showErrorDialog(context, 'New passwords do not match.');
+        return;
+      }
+
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        // Re-authenticate the user
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: currentUser.email!,
+          password: currentPassword,
+        );
+
+        try {
+          // Re-authenticate the user
+          await currentUser.reauthenticateWithCredential(credential);
+
+          // Update the password
+          await currentUser.updatePassword(newPassword);
+
+          // Update Firestore to reflect the password change (if needed)
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUser.uid)
+              .update({'lastPasswordChange': DateTime.now().toString()});
+
+          _logger
+              .i("Password updated successfully for UID: ${currentUser.uid}");
+
+          // Show success message
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Password updated successfully.')),
+          );
+          Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        } on FirebaseAuthException catch (e) {
+          _logger.e("Failed to update password: $e");
+          _showErrorDialog(
+              // ignore: use_build_context_synchronously
+              context,
+              'Failed to update password. Please try again.');
+        }
+      } else {
+        _showErrorDialog(context, 'No current user found.');
+      }
+    } catch (e) {
+      _logger.e("Error changing password: $e");
+      _showErrorDialog(
+          // ignore: use_build_context_synchronously
+          context,
+          'An error occurred while changing the password.');
+    }
+  }
+
+  Future<void> deleteAccount(BuildContext context) async {
+    try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        // Delete user's Firestore data
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .delete();
+
+        // Delete user's account from FirebaseAuth
+        await currentUser.delete();
+
+        _logger
+            .i("User account deleted successfully for UID: ${currentUser.uid}");
+
+        // Navigate to login page after deletion
+        Navigator.pushReplacement(
+          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      _logger.e("Error deleting user account: $e");
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Failed to delete account. Please try again.')),
+      );
+    }
+  }
+
+  Future<void> logout(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      _logger.i("User logged out successfully");
+
+      Navigator.pushReplacement(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } catch (e) {
+      _logger.e("Error logging out: $e");
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to logout. Please try again.')),
+      );
+    }
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
