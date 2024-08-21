@@ -1,10 +1,19 @@
+import 'dart:io';
+
 import 'package:chatapp/components/edit_details.dart';
 import 'package:chatapp/components/profile_menu_items.dart';
 import 'package:chatapp/components/view_full_profile_button.dart';
+import 'package:chatapp/controlers/storage_controller.dart';
 import 'package:chatapp/providers/user_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -15,6 +24,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  User? user = FirebaseAuth.instance.currentUser;
   bool _showFullDetails = false;
   bool _editDetails = false;
   bool _settings = false;
@@ -48,6 +58,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _obscureConfirmPassword = !_obscureConfirmPassword;
     });
+  }
+
+  String? filepath;
+  String? profileImageUrl;
+  XFile? pickedFile;
+  final ImagePicker _picker = ImagePicker();
+  Future<void> selectImage() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        Logger().i('Image selected: ${pickedFile?.path}');
+
+        File? croppedImg =
+            // ignore: use_build_context_synchronously
+            await cropImage(context, File(pickedFile?.path as String));
+        if (croppedImg != null) {
+          Logger().i("Cropped correctly: ${croppedImg.path}");
+          setState(() {
+            // Update the state to refresh the UI
+            filepath = croppedImg.path;
+          });
+          final storageController = StorageController();
+          final downloadURL = await storageController.uploadImage(
+              'Usersimages', "${user?.uid}.jpg", croppedImg);
+
+          if (downloadURL.isNotEmpty) {
+            Logger().i("Image uploaded successfully: $downloadURL");
+            updateProfileimagelink(downloadURL);
+          } else {
+            Logger().e("Failed to upload image");
+          }
+        } else {
+          Logger().i("Cropping canceled or failed.");
+        }
+      } else {
+        Logger().i('Image selection was cancelled or failed.');
+      }
+    } catch (e) {
+      Logger().e('Error selecting image: $e');
+    }
+  }
+
+  Future<File?> cropImage(BuildContext context, File file) async {
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg,
+        maxHeight: 512,
+        maxWidth: 512,
+        compressQuality: 60,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: const Color.fromARGB(255, 158, 39, 146),
+            toolbarWidgetColor: Colors.white,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Cropper',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(), // IMPORTANT: iOS supports only one custom aspect ratio in preset list
+            ],
+          ),
+          WebUiSettings(
+            context: context,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        Logger().i('Image cropped: ${croppedFile.path}');
+        return File(croppedFile.path);
+      } else {
+        Logger().i('Image cropping was cancelled or failed.');
+        return null;
+      }
+    } catch (e) {
+      Logger().e('Error cropping image: $e');
+      return null;
+    }
+  }
+
+  Future<void> updateProfileimagelink(String imageURL) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'profilePictureURL': imageURL});
+
+        // ignore: use_build_context_synchronously
+        await context.read<UserProvider>().loadUserData();
+
+        Logger().i('imageURL updated');
+      } catch (e) {
+        // Handle errors here, for example by showing an error message
+        Logger().i('Failed to update imageURL: $e');
+      }
+    } else {
+      // Handle the case where no user is signed in
+      Logger().i('No user is signed in.');
+    }
+  }
+
+  Future<void> deleteImage(String imageURL, BuildContext context) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Reference to the image in Firebase Storage
+        final imageRef = FirebaseStorage.instance
+            .ref()
+            .child('Usersimages')
+            .child('${user.uid}.jpg');
+
+        // Delete the image from Firebase Storage
+        await imageRef.delete();
+        Logger().i('Profile image deleted successfully.');
+
+        // Update Firestore to remove the image URL
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'profilePictureURL': ''});
+
+        // ignore: use_build_context_synchronously
+        await context.read<UserProvider>().loadUserData();
+      } catch (e) {
+        Logger().e('Failed to delete image : $e');
+
+        // Optionally, show a snackbar to notify the user of the failure
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('Failed to delete profile picture  Please try again.')),
+        );
+      }
+    } else {
+      Logger().i('No user is signed in.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No user is signed in.')),
+      );
+    }
   }
 
   @override
@@ -84,7 +248,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       image: fretcheduser.user?.profilePictureURL != null &&
                               fretcheduser.user!.profilePictureURL.isNotEmpty
                           ? NetworkImage(fretcheduser.user!.profilePictureURL)
-                          : const AssetImage('assets/profileimage.png')
+                          : const AssetImage('assets/images.png')
                               as ImageProvider,
                     ),
                     border: Border.all(
@@ -102,7 +266,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             GestureDetector(
                               onTap: () {
-                                //selectImage();
+                                selectImage();
                               },
                               child: CircleAvatar(
                                 radius: 14,
@@ -119,7 +283,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     true
                                 ? GestureDetector(
                                     onTap: () {
-                                      //deleteImage(imageURL);
+                                      deleteImage(
+                                          fretcheduser.user!.profilePictureURL,
+                                          context);
                                     },
                                     child: CircleAvatar(
                                       radius: 12,
@@ -902,4 +1068,12 @@ Future<bool> _showDeleteAccountDialog(BuildContext context) async {
         },
       ) ??
       false; // Return false if the dialog is dismissed
+}
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
 }

@@ -1,4 +1,5 @@
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import 'package:logger/logger.dart';
 class UserProvider with ChangeNotifier {
   UserModel? _user;
   final Logger _logger = Logger();
+  User? currectuser = FirebaseAuth.instance.currentUser;
 
   UserModel? get user => _user;
 
@@ -176,7 +178,20 @@ class UserProvider with ChangeNotifier {
     try {
       User? currentUser = FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
-        // Delete user's Firestore data
+        final imageRef = FirebaseStorage.instance
+            .ref()
+            .child('Usersimages')
+            .child('${user?.uid}.jpg');
+
+        // Check if the image exists before attempting to delete it
+        try {
+          await imageRef.getDownloadURL();
+          // If the image exists, delete it
+          await imageRef.delete();
+          Logger().i('Profile image deleted successfully.');
+        } catch (e) {
+          Logger().i('No profile image found, skipping deletion.');
+        }
         await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
