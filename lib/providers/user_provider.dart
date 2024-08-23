@@ -9,9 +9,14 @@ import 'package:logger/logger.dart';
 class UserProvider with ChangeNotifier {
   UserModel? _user;
   final Logger _logger = Logger();
+  List<UserModel> _userContacts = [];
+  List<UserModel> _allUsers = [];
+
   User? currectuser = FirebaseAuth.instance.currentUser;
 
   UserModel? get user => _user;
+  List<UserModel> get userContacts => _userContacts;
+  List<UserModel> get allUsers => _allUsers;
 
   Future<void> loadUserData() async {
     User? currentUser = FirebaseAuth.instance.currentUser;
@@ -239,23 +244,128 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
+  //contacts
+
+  Future<List<UserModel>> fetchAllUsers() async {
+    try {
+      // Fetch all users from Firestore
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+
+      // Convert snapshot to List<UserModel>
+      List<UserModel> users = snapshot.docs.map((doc) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      }).toList();
+
+      // Filter out the current user and users already in the contact list
+      if (_user != null) {
+        users = users.where((user) => user.uid != _user!.uid).toList();
+      }
+
+      _allUsers = users; // Update the _allUsers field
+      _logger.i("Fetched ${users.length} users.");
+
+      return users;
+    } catch (e) {
+      _logger.e("Error fetching users: $e");
+      return [];
+    }
   }
+
+  Future<List<UserModel>> loadUserContacts() async {
+    try {
+      if (_user != null) {
+        // Fetch all users from Firestore
+        QuerySnapshot snapshot =
+            await FirebaseFirestore.instance.collection('users').get();
+
+        // Convert snapshot to List<UserModel>
+        List<UserModel> allUsers = snapshot.docs.map((doc) {
+          return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        }).toList();
+
+        // Filter out the current user and users not in the current user's contacts list
+        List<UserModel> contacts = allUsers
+            .where((user) =>
+                _user!.contacts.contains(user.uid) && user.uid != _user!.uid)
+            .toList();
+
+        _userContacts = contacts; // Update the _userContacts field
+        _logger.i("Loaded ${_userContacts.length} user contacts.");
+        notifyListeners(); // Notify listeners to update the UI
+
+        return contacts;
+      } else {
+        _logger.w("No user is currently logged in.");
+        return []; // Return an empty list if no user is logged in
+      }
+    } catch (e) {
+      _logger.e("Error loading user contacts: $e");
+      return []; // Return an empty list in case of an error
+    }
+  }
+
+  Future<void> addToContacts(String contactUid) async {
+    if (_user == null) return;
+
+    try {
+      // Add contact UID to the current user's contacts list
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .update({
+        'contacts': FieldValue.arrayUnion([contactUid])
+      });
+
+      // Update the local user model
+      _user!.contacts.add(contactUid);
+      notifyListeners();
+
+      _logger.i("Added contact $contactUid.");
+    } catch (e) {
+      _logger.e("Error adding contact: $e");
+    }
+  }
+
+  Future<void> removeFromContacts(String contactUid) async {
+    if (_user == null) return;
+
+    try {
+      // Remove contact UID from the current user's contacts list
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .update({
+        'contacts': FieldValue.arrayRemove([contactUid])
+      });
+
+      // Update the local user model
+      _user!.contacts.remove(contactUid);
+      notifyListeners();
+
+      _logger.i("Removed contact $contactUid.");
+    } catch (e) {
+      _logger.e("Error removing contact: $e");
+    }
+  }
+}
+
+void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
 }
