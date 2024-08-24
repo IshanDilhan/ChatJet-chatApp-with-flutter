@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chatapp/models/user_model.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class UserProvider with ChangeNotifier {
   UserModel? _user;
@@ -227,6 +228,13 @@ class UserProvider with ChangeNotifier {
 
   Future<void> logout(BuildContext context) async {
     try {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        await Provider.of<UserProvider>(context, listen: false)
+            .updateUserOnlineStatus(currentUser.uid, false);
+      }
+
       await FirebaseAuth.instance.signOut();
       _logger.i("User logged out successfully");
 
@@ -270,6 +278,13 @@ class UserProvider with ChangeNotifier {
       _logger.e("Error fetching users: $e");
       return [];
     }
+  }
+
+  Future<void> updateUserOnlineStatus(String uid, bool isOnline) async {
+    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+      'isOnline': isOnline,
+    });
+    notifyListeners(); // Notifies any listeners about changes, if necessary
   }
 
   Future<List<UserModel>> loadUserContacts() async {

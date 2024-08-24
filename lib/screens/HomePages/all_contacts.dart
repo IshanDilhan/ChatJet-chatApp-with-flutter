@@ -1,5 +1,6 @@
 import 'package:chatapp/models/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/providers/user_provider.dart';
@@ -104,13 +105,36 @@ class _AllContactsPageState extends State<AllContactsPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 5),
-                                    Text(
-                                      'Last Login: ${user.lastLogin}',
-                                      style: GoogleFonts.lato(
-                                        fontSize: 12,
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
+                                    Row(
+                                      children: [
+                                        if (user.isOnline)
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.circle,
+                                                color: Colors.green,
+                                                size: 12,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Online',
+                                                style: GoogleFonts.lato(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        else
+                                          Text(
+                                            'Last Login: ${DateFormat('dd MMM yyyy, hh:mm a').format(user.lastLogin)}',
+                                            style: GoogleFonts.lato(
+                                              fontSize: 12,
+                                              color: Colors.grey[500],
+                                            ),
+                                          ),
+                                      ],
+                                    )
                                   ],
                                 ),
                               ),

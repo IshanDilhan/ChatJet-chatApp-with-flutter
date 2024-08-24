@@ -1,3 +1,4 @@
+import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:chatapp/screens/SignInPages/sign_up.dart';
 import 'package:chatapp/screens/main_screen.dart';
@@ -6,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,6 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
       } else {
         Logger().i('User is signed in!');
         Logger().i(user);
+        await Provider.of<UserProvider>(context, listen: false)
+            .updateUserOnlineStatus(user.uid, true);
 
         Map<String, dynamic>? userInfo = await fetchUserData(user.uid);
 

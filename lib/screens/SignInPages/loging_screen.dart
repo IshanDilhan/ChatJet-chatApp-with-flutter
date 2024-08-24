@@ -1,10 +1,13 @@
 import 'package:chatapp/controlers/user_controler.dart';
+import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/SignInPages/reset_password.dart';
 import 'package:chatapp/screens/SignInPages/sign_up.dart';
 import 'package:chatapp/screens/main_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -41,11 +44,28 @@ class _LoginScreenState extends State<LoginScreen> {
           email: _emailController.text,
           password: _passwordController.text,
         );
-        Navigator.pushReplacement(
+        User? currentUser = FirebaseAuth.instance.currentUser;
+
+        if (currentUser != null) {
           // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
-        );
+          await Provider.of<UserProvider>(context, listen: false)
+              .updateUserOnlineStatus(currentUser.uid, true);
+
+          // Navigate to the HomePage only if the user is successfully logged in
+          Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          // Handle the case where currentUser is null after sign-in
+          _logger.e("Login failed: No current user found.");
+          // ignore: use_build_context_synchronously
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text("Login failed: No current user found.")),
+          );
+        }
       } catch (error) {
         _logger.e("Login failed: $error");
         // ignore: use_build_context_synchronously

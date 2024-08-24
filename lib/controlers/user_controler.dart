@@ -46,6 +46,7 @@ class UserController {
           location: location,
           interests: interests,
           contacts: [], // Initialize with empty list
+          isOnline: true,
         );
 
         await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
@@ -188,19 +189,19 @@ class UserController {
         if (!userDoc.exists) {
           // Create a new user if not exists
           UserModel newUser = UserModel(
-            uid: user.uid,
-            username: user.displayName ?? 'No Name',
-            mobileNumber: '', // You might want to update this later
-            email: user.email ?? '',
-            profilePictureURL: user.photoURL ?? '',
-            status: 'offline',
-            createdAt: DateTime.now(),
-            lastLogin: DateTime.now(),
-            bio: '', // Optional
-            location: '', // Optional
-            interests: [], // Optional
-            contacts: [], // Initialize with empty list
-          );
+              uid: user.uid,
+              username: user.displayName ?? 'No Name',
+              mobileNumber: '', // You might want to update this later
+              email: user.email ?? '',
+              profilePictureURL: user.photoURL ?? '',
+              status: 'offline',
+              createdAt: DateTime.now(),
+              lastLogin: DateTime.now(),
+              bio: '', // Optional
+              location: '', // Optional
+              interests: [], // Optional
+              contacts: [], // Initialize with empty list
+              isOnline: true);
 
           await _firestore
               .collection('users')

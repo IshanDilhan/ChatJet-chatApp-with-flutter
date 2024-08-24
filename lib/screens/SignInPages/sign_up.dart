@@ -1,9 +1,12 @@
 import 'package:chatapp/controlers/user_controler.dart';
+import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:chatapp/screens/main_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -27,6 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
   String? _errorMessage;
 
   Future<void> _signUp(context) async {
+    User? currectuser = FirebaseAuth.instance.currentUser;
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       try {
@@ -40,7 +44,8 @@ class _SignUpPageState extends State<SignUpPage> {
           interests: _interests,
         );
 
-        // Navigate to the login screen after successful sign-up
+        await Provider.of<UserProvider>(context, listen: false)
+            .updateUserOnlineStatus(currectuser!.uid, true);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),

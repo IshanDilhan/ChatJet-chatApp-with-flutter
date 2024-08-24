@@ -11,6 +11,7 @@ class UserModel {
   final String location; // User's location
   final List<String> interests; // List of interests or hobbies
   final List<String> contacts; // List of user's contacts (friend IDs)
+  final bool isOnline;
 
   UserModel({
     required this.uid,
@@ -25,6 +26,7 @@ class UserModel {
     required this.location,
     required this.interests,
     required this.contacts,
+    required this.isOnline,
   });
 
   // Convert a UserModel object into a map for Firestore
@@ -42,6 +44,7 @@ class UserModel {
       'location': location,
       'interests': interests,
       'contacts': contacts,
+      'isOnline': isOnline,
     };
   }
 
@@ -60,6 +63,7 @@ class UserModel {
       location: map['location'],
       interests: List<String>.from(map['interests']),
       contacts: List<String>.from(map['contacts']),
+      isOnline: map['isOnline'] ?? false,
     );
   }
 }
