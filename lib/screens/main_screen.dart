@@ -1,9 +1,9 @@
-import 'package:chatapp/screens/HomePages/home_page.dart';
+import 'package:chatapp/screens/ChatPages/chat_page.dart';
+import 'package:chatapp/screens/ChatPages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/screens/HomePages/contact_page.dart';
 import 'package:chatapp/screens/HomePages/profile_screen.dart';
-import 'package:chatapp/screens/HomePages/status_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,7 +17,12 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
-    const StatusScreen(),
+    const ChatPage(
+      chatterName: "ishan",
+      chatterImageUrl: "",
+      isOnline: true,
+      lastSeen: "",
+    ),
     const ContactPage(),
     const ProfileScreen(),
   ];
