@@ -1,0 +1,71 @@
+chats
+  └── chatId
+       ├── chatName (optional, for group chats)
+       ├── chatImageURL (optional, for group chats)
+       ├── participants (list of user IDs)
+       ├── adminId (optional, for group chats)
+       ├── lastMessage
+       ├── lastMessageTimestamp
+       ├── chatType (e.g., "single", "group")
+       └── messages
+           └── messageId
+                ├── senderId
+                ├── text (optional)
+                ├── mediaURL (optional)
+                ├── mediaType (e.g., "image", "video")
+                ├── timestamp
+                ├── status (e.g., "sent", "delivered", "read")
+                ├── deleteForEveryone (bool)
+                └── edited (bool)
+
+
+chatName: // The name of the chat, applicable to group chats. Helps users identify the group.
+
+chatImageURL: // URL for the chat's image, if applicable (e.g., group chat image).
+
+participants: // List of user IDs who are part of the chat. Manages chat membership.
+
+adminId: // User ID of the group admin, optional for group chats. Used for administrative functions.
+
+lastMessage: // The content of the last message sent in the chat. Useful for chat previews.
+
+lastMessageTimestamp: // Timestamp of the last message sent. Helps in sorting chats by recency.
+
+chatType: // Specifies the type of chat: "single" for one-on-one chats and "group" for group chats.
+
+messages: // Subcollection of messages within the chat.
+
+    senderId: // User ID of the message sender.
+    text: // The text content of the message (optional).
+    mediaURL: // URL of any media (e.g., images, videos) sent with the message (optional).
+    mediaType: // Type of media (e.g., "image", "video").
+    timestamp: // Timestamp when the message was sent.
+    status: // Status of the message (e.g., "sent", "delivered", "read").
+    deleteForEveryone: // Boolean indicating if the message was deleted for everyone.
+    edited: // Boolean indicating if the message was edited.
+
+
+chatName: // The name of the chat, applicable to group chats. Helps users identify the group.
+
+chatImageURL: // URL for the chat's image, if applicable (e.g., group chat image).
+
+participants: // List of user IDs who are part of the chat. Manages chat membership.
+
+adminId: // User ID of the group admin, optional for group chats. Used for administrative functions.
+
+lastMessage: // The content of the last message sent in the chat. Useful for chat previews.
+
+lastMessageTimestamp: // Timestamp of the last message sent. Helps in sorting chats by recency.
+
+chatType: // Specifies the type of chat: "single" for one-on-one chats and "group" for group chats.
+
+messages: // Subcollection of messages within the chat.
+
+    senderId: // User ID of the message sender.
+    text: // The text content of the message (optional).
+    mediaURL: // URL of any media (e.g., images, videos) sent with the message (optional).
+    mediaType: // Type of media (e.g., "image", "video").
+    timestamp: // Timestamp when the message was sent.
+    status: // Status of the message (e.g., "sent", "delivered", "read").
+    deleteForEveryone: // Boolean indicating if the message was deleted for everyone.
+    edited: // Boolean indicating if the message was edited.

@@ -1,9 +1,11 @@
 import 'package:chatapp/controlers/user_controler.dart';
 import 'package:chatapp/providers/user_provider.dart';
+import 'package:chatapp/providers/chat_provider.dart';
+import 'package:chatapp/screens/HomePages/contact_page.dart';
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/web.dart';
 import 'package:provider/provider.dart';
+import 'package:logger/logger.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,17 +15,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final Logger _logger = Logger();
+  List<Map<String, dynamic>> _chats = [];
+
   @override
   void initState() {
     super.initState();
-    _loadUserData(context);
+    _loadUserData();
+    _fetchChats();
   }
 
-  final Logger _logger = Logger();
-  Future<void> _loadUserData(context) async {
+  Future<void> _loadUserData() async {
     try {
-      await Provider.of<UserProvider>(context, listen: false).loadUserData();
-      final user = Provider.of<UserProvider>(context, listen: false).user;
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.loadUserData();
+      final user = userProvider.user;
       if (user != null) {
         _logger.i("User data loaded successfully: ${user.username}");
       } else {
@@ -34,33 +40,62 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _fetchChats() async {
+    try {
+      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final user = userProvider.user;
+      if (user != null) {
+        await chatProvider.fetchChatsForUser(user);
+        setState(() {
+          _chats = chatProvider.chats.values.map((chat) {
+            return {
+              'chatId': chat.chatId, // Include chatId
+              'name': chat.chatName ?? 'Unknown',
+              'image': chat.chatImageURL ?? 'https://via.placeholder.com/150',
+              'lastMessage': chat.lastMessage ?? '',
+              'lastMessageTime': chat.lastMessageTimestamp != null
+                  ? TimeOfDay.fromDateTime(chat.lastMessageTimestamp!.toDate())
+                      .format(context)
+                  : 'Unknown',
+            };
+          }).toList();
+        });
+      }
+    } catch (error) {
+      _logger.e("Error fetching chats: $error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        title: Text(
+        title: const Text(
           "ChatJet Messages",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
               // Add search functionality here
             },
           ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
-              UserController userController = UserController();
+              final userController = UserController();
               try {
                 await userController.signOut();
                 Navigator.pushReplacement(
+                  // ignore: use_build_context_synchronously
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               } catch (error) {
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Logout failed: $error')),
                 );
@@ -73,29 +108,53 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: 20, // Replace with actual chat count later
+              itemCount: _chats.length,
               itemBuilder: (context, index) {
+                final chat = _chats[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                        'https://via.placeholder.com/150'), // Placeholder for user's avatar
+                    backgroundImage: NetworkImage(chat['image']!),
                   ),
-                  title: Text("Chatter ${index + 1}"),
+                  title: Text(chat['name']!),
                   subtitle: Text(
-                    "Last message snippet goes here...",
+                    chat['lastMessage']!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  trailing:
-                      Text("12:00 PM"), // Placeholder for last message time
+                  trailing: Text(chat['lastMessageTime']!),
                   onTap: () {
-                    // Navigate to chat screen
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => ChatPage(
+                    //       chatteruid: ,
+                    //       chatId: chat['chatId']!, // Pass chatId to ChatPage
+                    //       chatterName: chat['name']!,
+                    //       chatterImageUrl: chat['image']!,
+                    //       isOnline: false, // Determine if online dynamically
+                    //       lastSeen:
+                    //           'Yesterday', // Provide actual last seen information
+                    //     ),
+                    //   ),
+                    // );
                   },
                 );
               },
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    const ContactPage()), // Navigate to contact page
+          );
+        },
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:chatapp/controlers/chat_controller.dart';
 import 'package:chatapp/models/user_model.dart'; // Import UserModel
 import 'package:flutter/material.dart'; // Import Flutter Material package
 import 'package:intl/intl.dart'; // Import intl package for date formatting
@@ -27,6 +28,7 @@ class _MyContactsPageState extends State<MyContactsPage> {
 
   @override
   Widget build(BuildContext context) {
+    ChatController chatController = ChatController(context);
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Padding(
@@ -197,8 +199,7 @@ class _MyContactsPageState extends State<MyContactsPage> {
                                   icon: const Icon(Icons.message,
                                       color: Colors.blue),
                                   onPressed: () {
-                                    // Handle sending a message
-                                    // Add your message sending logic here
+                                    chatController.startChat(user);
                                   },
                                 ),
                                 // Button for removing the contact

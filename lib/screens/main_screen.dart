@@ -1,5 +1,5 @@
-import 'package:chatapp/screens/ChatPages/chat_page.dart';
 import 'package:chatapp/screens/ChatPages/home_page.dart';
+import 'package:chatapp/screens/HomePages/status_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/screens/HomePages/contact_page.dart';
@@ -17,12 +17,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
-    const ChatPage(
-      chatterName: "ishan",
-      chatterImageUrl: "",
-      isOnline: true,
-      lastSeen: "",
-    ),
+    const StatusScreen(),
     const ContactPage(),
     const ProfileScreen(),
   ];
