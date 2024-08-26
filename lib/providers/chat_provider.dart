@@ -8,10 +8,15 @@ import 'package:logger/logger.dart';
 
 class ChatProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // ignore: prefer_final_fields
   Map<String, ChatModel> _chats = {};
+  // ignore: prefer_final_fields
+  Map<String, UserModel> _participants = {}; // Add this field
   final Logger _logger = Logger();
 
   Map<String, ChatModel> get chats => _chats;
+  Map<String, UserModel> get participants => _participants; // Add this getter
+
   User? currentuser = FirebaseAuth.instance.currentUser;
 
   // Fetch a single chat
@@ -31,10 +36,14 @@ class ChatProvider with ChangeNotifier {
   }
 
   // Fetch all chats for a user based on their contact IDs
-  Future<void> fetchChatsForUser(UserModel user) async {
+  Future<List<Map<String, dynamic>>> fetchChatsWithLastMessage(
+      UserModel user) async {
     try {
-      if (user.contacts.isEmpty) return;
+      if (user.contacts.isEmpty) return [];
 
+      final List<Map<String, dynamic>> chatDetails = [];
+
+      // Fetch chat documents where the user's contacts are participants
       final chatDocs = await Future.wait(
         user.contacts.map(
           (contactId) => _firestore
@@ -44,17 +53,65 @@ class ChatProvider with ChangeNotifier {
         ),
       );
 
-      final chats = <String, ChatModel>{};
       for (var chatDocList in chatDocs) {
         for (var doc in chatDocList.docs) {
-          chats[doc.id] = ChatModel.fromMap(doc.id, doc.data());
+          final chatData = doc.data();
+          final chatId = doc.id;
+
+          // Extract participant IDs
+          final List<String> participants =
+              List<String>.from(chatData['participants']);
+
+          // Determine the chatter ID (first participant other than the current user)
+          final chatterId = participants.firstWhere(
+            (participantId) => participantId != user.uid,
+            orElse: () => '',
+          );
+
+          if (chatterId.isNotEmpty) {
+            chatDetails.add({
+              'chatId': chatId,
+              'chatterName':
+                  '', // Placeholder; to be fetched separately if needed
+              'chatteruid': chatterId,
+              'chatterImageUrl':
+                  '', // Placeholder; to be fetched separately if needed
+              'isOnline':
+                  false, // Placeholder; to be fetched separately if needed
+              'lastSeen': '', // Placeholder; to be fetched separately if needed
+              'lastMessage': chatData['lastMessage'] ?? '',
+              'lastMessageTimestamp':
+                  chatData['lastMessageTimestamp']?.toDate() ?? DateTime.now(),
+            });
+          }
         }
       }
 
-      _chats = chats;
-      notifyListeners();
+      return chatDetails;
     } catch (e) {
-      Logger().i('Error fetching chats for user: $e');
+      _logger.e('Error fetching chats with last message: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, UserModel>> fetchChatters(List<String> chatterIds) async {
+    try {
+      final Map<String, UserModel> chatters = {};
+
+      for (var chatterId in chatterIds) {
+        final userDoc =
+            await _firestore.collection('users').doc(chatterId).get();
+        final chatterData = userDoc.data();
+
+        if (chatterData != null) {
+          chatters[chatterId] = UserModel.fromMap(chatterData);
+        }
+      }
+
+      return chatters;
+    } catch (e) {
+      _logger.e('Error fetching chatters: $e');
+      return {};
     }
   }
 
