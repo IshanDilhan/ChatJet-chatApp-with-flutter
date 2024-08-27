@@ -25,4 +25,19 @@ class StatusController {
       return [];
     }
   }
+
+  Future<void> deleteStatus(String statusId) async {
+    try {
+      // Reference to the statuses collection
+      final statusRef = _firestore.collection('statuses').doc(statusId);
+
+      // Delete the status document
+      await statusRef.delete();
+
+      Logger().i('Status with ID $statusId deleted successfully.');
+    } catch (e) {
+      Logger().i('Failed to delete status: $e');
+      // Optionally, handle errors, e.g., by showing a message to the user
+    }
+  }
 }

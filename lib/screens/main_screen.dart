@@ -1,3 +1,4 @@
+import 'package:chatapp/screens/AI%20chat%20Pages/ai_chat_page.dart';
 import 'package:chatapp/screens/ChatPages/home_page.dart';
 import 'package:chatapp/screens/HomePages/status_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
+    const AiChatPage(),
     const StatusScreen(),
     const ContactPage(),
     const ProfileScreen(),
@@ -45,6 +47,11 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
             label: "Chat",
+            backgroundColor: Colors.white,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.gas_meter_outlined),
+            label: "Ai chat",
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(

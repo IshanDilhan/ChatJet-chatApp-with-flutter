@@ -130,11 +130,20 @@ class StatusProvider with ChangeNotifier {
       // Fetch all statuses from the controller
       final allStatuses = await _statusController.getStatuses();
 
+      // Filter out statuses older than 24 hours
+      final now = DateTime.now();
+      final validStatuses = allStatuses.where((status) {
+        final statusTimestamp =
+            status.timestamp; // Assuming timestamp is already a DateTime
+        return now.difference(statusTimestamp).inHours < 24;
+      }).toList();
+
       // Find the current user's status
-      final myStatus = allStatuses.cast<StatusModel?>().firstWhere(
+      final myStatus = validStatuses.cast<StatusModel?>().firstWhere(
             (status) => status?.userId == user.uid,
             orElse: () => null, // Return null if no status is found.
           );
+      _logger.i('fretched valid status');
 
       // If a status is found, assign it to _myStatus
       if (myStatus != null) {
@@ -147,7 +156,7 @@ class StatusProvider with ChangeNotifier {
 
       // Filter out the current user's status from the list
       _statuses =
-          allStatuses.where((status) => status.userId != user.uid).toList();
+          validStatuses.where((status) => status.userId != user.uid).toList();
 
       // Notify listeners to update the UI
       notifyListeners();
@@ -156,6 +165,40 @@ class StatusProvider with ChangeNotifier {
     } catch (e) {
       _logger.e('Failed to fetch statuses: $e');
       // Optionally, handle errors, e.g., by showing a message to the user
+    }
+  }
+
+  Future<void> deleteOldStatuses() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _logger.i('No user is signed in.');
+        return;
+      }
+
+      // Fetch all statuses from the controller
+      final allStatuses = await _statusController.getStatuses();
+
+      // Filter out statuses older than 24 hours
+      final now = DateTime.now();
+      final oldStatuses = allStatuses.where((status) {
+        final statusTimestamp =
+            status.timestamp; // Assuming timestamp is already a DateTime
+        return now.difference(statusTimestamp).inHours >= 24;
+      }).toList();
+
+      // Delete old statuses from the database
+      for (final status in oldStatuses) {
+        await _statusController.deleteStatus(
+            status.statusId); // Implement this method in your controller
+      }
+
+      // Fetch statuses again to update the UI
+      await fetchStatuses();
+
+      _logger.i('Old statuses deleted successfully.');
+    } catch (e) {
+      _logger.e('Failed to delete old statuses: $e');
     }
   }
 
