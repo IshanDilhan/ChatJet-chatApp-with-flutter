@@ -1,5 +1,6 @@
 import 'package:chatapp/firebase_options.dart';
 import 'package:chatapp/providers/chat_provider.dart';
+import 'package:chatapp/providers/status_provider.dart';
 import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/SignInPages/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -17,6 +18,9 @@ Future<void> main() async {
     ),
     ChangeNotifierProvider(
       create: (context) => ChatProvider(),
+    ),
+    ChangeNotifierProvider(
+      create: (context) => StatusProvider(),
     ),
   ], child: const MyApp()));
 }
