@@ -10,7 +10,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class GeminiChatPage extends StatefulWidget {
-  const GeminiChatPage({Key? key}) : super(key: key);
+  const GeminiChatPage({super.key});
 
   @override
   State<GeminiChatPage> createState() => _GeminiChatPageState();
@@ -19,42 +19,57 @@ class GeminiChatPage extends StatefulWidget {
 class _GeminiChatPageState extends State<GeminiChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  List<ChatMessage> _messages = [];
+  final List<ChatMessage> _messages = [];
   bool _isLoading = false;
-  File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   XFile? pickedFile;
   // ignore: non_constant_identifier_names
   File? Imagetogemini;
-  bool isimagechat = false;
+  final Logger _logger = Logger();
+  final FocusNode _focusNode = FocusNode();
 
   void _sendQuery(String query) {
-    // setState(() {
-    //   _isLoading = true;
-    //   _messages.add(ChatMessage(text: query, isFromUser: true));
-    // });
+    // Fetch the last message, if there is one
+    final messages =
+        Provider.of<AiChatImageProvider>(context, listen: false).messages;
+    File? file;
 
-    // Gemini.instance.text(query).then((value) {
-    //   setState(() {
-    //     _messages.add(
-    //         ChatMessage(text: value?.output ?? 'No output', isFromUser: false));
-    //     _isLoading = false;
-    //   });
-    //   _scrollToEnd();
-    // }).catchError((e) {
-    //   setState(() {
-    //     _messages.add(ChatMessage(text: 'Error: $e', isFromUser: false));
-    //     _isLoading = false;
-    //   });
-    //   log('Gemini text exception', error: e);
-    //   _scrollToEnd();
-    // });
-    _sendQueryWithImage();
+    if (messages.isNotEmpty) {
+      file = messages.last.imageFile;
+    }
+
+    // If there is an image, send the query with the image
+    if (file != null) {
+      _sendQueryWithImage();
+    } else {
+      // No image, just send the text query
+      setState(() {
+        _isLoading = true;
+        _messages.add(ChatMessage(text: query, isFromUser: true));
+      });
+
+      Gemini.instance.text(query).then((value) {
+        setState(() {
+          _messages.add(ChatMessage(
+              text: value?.output ?? 'No output', isFromUser: false));
+          _isLoading = false;
+        });
+        _scrollToEnd();
+      }).catchError((e) {
+        setState(() {
+          _messages.add(ChatMessage(text: 'Error: $e', isFromUser: false));
+          _isLoading = false;
+        });
+        log('Gemini text exception', error: e);
+        _scrollToEnd();
+      });
+    }
+    Provider.of<AiChatImageProvider>(context, listen: false).clearMessage();
   }
 
   void _sendQueryWithImage() {
     final gemini = Gemini.instance;
-
+    _logger.i('Entering _sendQueryWithImage method');
     final messages =
         Provider.of<AiChatImageProvider>(context, listen: false).messages;
 
@@ -63,16 +78,20 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
       final file = lastMessage.imageFile;
       final text = lastMessage.text;
 
+      _logger.i('Last message text: $text');
+      _logger.i('Last message image file: ${file?.path}');
+
       if (file != null) {
         setState(() {
           _isLoading = true;
-          _messages.add(ChatMessage(text: text ?? '', isFromUser: true));
+          _messages.add(ChatMessage(text: text, isFromUser: true, image: file));
         });
 
         gemini.textAndImage(
-          text: text ?? '',
+          text: text,
           images: [file.readAsBytesSync()],
         ).then((value) {
+          _logger.i('API Response: ${value?.content?.parts}');
           setState(() {
             _messages.add(ChatMessage(
                 text: value?.content?.parts?.last.text ?? 'No output',
@@ -81,19 +100,16 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
           });
           _scrollToEnd();
         }).catchError((e) {
+          _logger.e('API Error: $e');
           setState(() {
             _messages.add(ChatMessage(text: 'Error: $e', isFromUser: false));
             _isLoading = false;
           });
-          log('Gemini textAndImage exception', error: e);
           _scrollToEnd();
         });
-      } else {
-        log('No image file found');
       }
-    } else {
-      log('No messages found');
     }
+    Provider.of<AiChatImageProvider>(context, listen: false).clearMessage();
   }
 
   void _selectImage() {
@@ -108,13 +124,12 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                 title: const Text('Gallery'),
                 onTap: () async {
                   await _getImage(ImageSource.gallery);
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop();
                   if (Imagetogemini != null) {
                     Logger().i('go1');
-                    setState(() {
-                      isimagechat = true;
-                    });
-                    Navigator.push(
+
+                    final result = await Navigator.push(
                       // ignore: use_build_context_synchronously
                       context,
                       MaterialPageRoute(
@@ -122,6 +137,12 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                                 imageFile: Imagetogemini,
                               )),
                     );
+                    Logger().f(result);
+
+                    if (result) {
+                      _sendQueryWithImage();
+                      _scrollToEnd();
+                    }
                   }
                 },
               ),
@@ -130,13 +151,12 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                 title: const Text('Camera'),
                 onTap: () async {
                   await _getImage(ImageSource.camera);
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop();
                   if (Imagetogemini != null) {
                     Logger().i('go2');
-                    setState(() {
-                      isimagechat = true;
-                    });
-                    Navigator.push(
+
+                    final result = await Navigator.push(
                       // ignore: use_build_context_synchronously
                       context,
                       MaterialPageRoute(
@@ -144,6 +164,12 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                                 imageFile: Imagetogemini,
                               )),
                     );
+                    Logger().f(result);
+
+                    if (result) {
+                      _sendQueryWithImage();
+                      _scrollToEnd();
+                    }
                   }
                 },
               ),
@@ -156,7 +182,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
 
   Future<void> _getImage(ImageSource source) async {
     try {
-      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      pickedFile = await _picker.pickImage(source: source);
       Imagetogemini = null;
 
       if (pickedFile != null) {
@@ -240,7 +266,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gemini Chat'),
+        title: const Text('ChatJet AI'),
       ),
       body: Column(
         children: [
@@ -254,7 +280,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                     .toList()
                   ..add(_isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : SizedBox.shrink()),
+                      : const SizedBox.shrink()),
               ),
             ),
           ),
@@ -265,8 +291,9 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    focusNode: _focusNode,
                     decoration: InputDecoration(
-                      labelText: 'Enter your query',
+                      labelText: 'Chat with ChatJet AI ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -275,23 +302,33 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                       if (value.trim().isNotEmpty) {
                         _sendQuery(value);
                         _controller.clear();
+                        FocusScope.of(context).unfocus();
                       }
                     },
+                    minLines: 1,
+                    maxLines: 5,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 1),
                 IconButton(
-                  icon: const Icon(Icons.attach_file),
+                  icon: const Icon(
+                    Icons.attach_file,
+                    color: Color.fromARGB(255, 58, 56, 56),
+                  ),
                   onPressed: _selectImage,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 1),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(
+                    Icons.send,
+                    color: Color.fromARGB(255, 44, 147, 82),
+                  ),
                   onPressed: () {
                     final text = _controller.text.trim();
                     if (text.isNotEmpty) {
                       _sendQuery(text);
                       _controller.clear();
+                      FocusScope.of(context).unfocus();
                     }
                   },
                 ),
@@ -314,11 +351,26 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
           color: message.isFromUser ? Colors.blueAccent : Colors.grey[300],
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: message.isFromUser ? Colors.white : Colors.black87,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (message.image != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 5),
+                child: Image.file(
+                  message.image!,
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            Text(
+              message.text,
+              style: TextStyle(
+                color: message.isFromUser ? Colors.white : Colors.black87,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -328,10 +380,12 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
 class ChatMessage {
   final String text;
   final bool isFromUser;
+  final File? image;
 
   ChatMessage({
     required this.text,
     required this.isFromUser,
+    this.image,
   });
 }
 

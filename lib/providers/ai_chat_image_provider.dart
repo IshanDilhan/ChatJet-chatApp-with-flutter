@@ -11,6 +11,11 @@ class AiChatImageProvider with ChangeNotifier {
     _messages.add(newMessage);
     notifyListeners();
   }
+
+  void clearMessage() {
+    _messages.clear();
+    notifyListeners();
+  }
 }
 
 class Message {

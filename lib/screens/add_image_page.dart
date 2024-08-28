@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:chatapp/providers/ai_chat_image_provider.dart';
-import 'package:chatapp/providers/chat_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,10 @@ class AddTextPage extends StatefulWidget {
 class _AddTextPageState extends State<AddTextPage> {
   final TextEditingController _textController = TextEditingController();
   File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  XFile? pickedFile;
+  // ignore: non_constant_identifier_names
+  File? Imagetogemini;
 
   @override
   void initState() {
@@ -32,7 +37,83 @@ class _AddTextPageState extends State<AddTextPage> {
   }
 
   Future<void> _updateImage() async {
-    // Implement image update logic
+    _deleteImage();
+    await _getImage(ImageSource.gallery);
+    setState(() {
+      _imageFile = Imagetogemini;
+    });
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    try {
+      pickedFile = await _picker.pickImage(source: source);
+      Imagetogemini = null;
+
+      if (pickedFile != null) {
+        Logger().i('Image selected: ${pickedFile?.path}');
+
+        Imagetogemini =
+            // ignore: use_build_context_synchronously
+            await cropImage(context, File(pickedFile?.path as String));
+        if (Imagetogemini != null) {
+          Logger().i("Cropped correctly: ${Imagetogemini?.path}");
+        } else {
+          Logger().i("Cropping canceled or failed.");
+          Imagetogemini = null;
+        }
+      } else {
+        Logger().i('Image selection was cancelled or failed.');
+        Imagetogemini = null;
+      }
+    } catch (e) {
+      Logger().e('Error selecting image: $e');
+    }
+  }
+
+  Future<File?> cropImage(BuildContext context, File file) async {
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg,
+        maxHeight: 512,
+        maxWidth: 512,
+        compressQuality: 60,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: const Color.fromARGB(255, 158, 39, 146),
+            toolbarWidgetColor: Colors.white,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Cropper',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(), // IMPORTANT: iOS supports only one custom aspect ratio in preset list
+            ],
+          ),
+          WebUiSettings(
+            context: context,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        Logger().i('Image cropped: ${croppedFile.path}');
+        return File(croppedFile.path);
+      } else {
+        Logger().i('Image cropping was cancelled or failed.');
+        return null;
+      }
+    } catch (e) {
+      Logger().e('Error cropping image: $e');
+      return null;
+    }
   }
 
   void _sendToChat() {
@@ -46,7 +127,7 @@ class _AddTextPageState extends State<AddTextPage> {
           imageFile: _imageFile, text: _textController.text);
 
       Logger().i('Send data to providers');
-      Navigator.of(context).pop();
+      Navigator.pop(context, true);
     }
   }
 
@@ -136,4 +217,12 @@ class _AddTextPageState extends State<AddTextPage> {
       ),
     );
   }
+}
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
 }

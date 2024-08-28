@@ -42,7 +42,7 @@ class MassageWidget extends StatelessWidget {
           children: [
             if (imageFile != null)
               Container(
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   maxHeight: 200,
                   maxWidth: 300,
                 ),

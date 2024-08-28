@@ -87,43 +87,47 @@ class _StatusScreenState extends State<StatusScreen> {
                   );
                 } else {
                   // If myStatus is not available, fetch the status
-                  await statusProvider.fetchStatuses();
+                  try {
+                    await statusProvider.fetchStatuses();
 
-                  // Check again if myStatus is available after fetching
-                  if (statusProvider.mystatus!.statusImageUrls?.isNotEmpty ==
-                      true) {
-                    Navigator.push(
-                      // ignore: use_build_context_synchronously
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ViewStatusScreen(
-                          status: statusProvider.mystatus!,
-                          isuserwantdelete: true,
-                        ),
-                      ),
-                    );
-                  } else {
-                    // ignore: use_build_context_synchronously
-                    await statusProvider.selectStatusImage(context);
-                    Logger().i(statusProvider.statusImageUrl);
-
-                    // After image is uploaded, create the status
-                    if (statusProvider.statusImageUrl.isNotEmpty == true) {
+                    // Check again if myStatus is available after fetching
+                    if (statusProvider.mystatus!.statusImageUrls?.isNotEmpty ==
+                        true) {
                       Navigator.push(
-                          // ignore: use_build_context_synchronously
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => AddStatusTextPage(
-                                  statusImageUrl:
-                                      statusProvider.statusImageUrl)));
-                      // await createStatus(
-                      //   statusText: _statusTextController.text,
-                      //   statusImageUrl: statusProvider.statusImageUrl!,
-                      // );
-                      Logger().i('send user to add status page');
+                        // ignore: use_build_context_synchronously
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ViewStatusScreen(
+                            status: statusProvider.mystatus!,
+                            isuserwantdelete: true,
+                          ),
+                        ),
+                      );
                     } else {
-                      Logger().i('emty');
+                      // ignore: use_build_context_synchronously
+                      await statusProvider.selectStatusImage(context);
+                      Logger().i(statusProvider.statusImageUrl);
+
+                      // After image is uploaded, create the status
+                      if (statusProvider.statusImageUrl.isNotEmpty == true) {
+                        Navigator.push(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => AddStatusTextPage(
+                                    statusImageUrl:
+                                        statusProvider.statusImageUrl)));
+                        // await createStatus(
+                        //   statusText: _statusTextController.text,
+                        //   statusImageUrl: statusProvider.statusImageUrl!,
+                        // );
+                        Logger().i('send user to add status page');
+                      } else {
+                        Logger().i('emty');
+                      }
                     }
+                  } catch (e) {
+                    Logger().f(e);
                   }
                 }
               },
