@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
@@ -6,10 +8,12 @@ class MassageWidget extends StatelessWidget {
     super.key,
     required this.text,
     required this.isfromUser,
+    this.imageFile,
   });
 
   final String text;
   final bool isfromUser;
+  final File? imageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -29,22 +33,34 @@ class MassageWidget extends StatelessWidget {
               color: Colors.black.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 3,
-              offset: const Offset(0, 1), // changes position of shadow
+              offset: const Offset(0, 1),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MarkdownBody(
-              data: text,
-              styleSheet: MarkdownStyleSheet(
-                p: TextStyle(
-                  color: isfromUser ? Colors.white : Colors.black,
-                  fontSize: 16,
+            if (imageFile != null)
+              Container(
+                constraints: BoxConstraints(
+                  maxHeight: 200,
+                  maxWidth: 300,
+                ),
+                child: Image.file(
+                  imageFile!,
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
+            if (text.isNotEmpty)
+              MarkdownBody(
+                data: text,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: isfromUser ? Colors.white : Colors.black,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
