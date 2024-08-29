@@ -1,6 +1,6 @@
 import 'package:chatapp/screens/ChatPages/home_page.dart';
 import 'package:chatapp/screens/HomePages/status_screen.dart';
-import 'package:chatapp/screens/gemini_chat.dart';
+import 'package:chatapp/screens/Chatjet%20AI%20pages/gemini_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:chatapp/screens/HomePages/contact_page.dart';

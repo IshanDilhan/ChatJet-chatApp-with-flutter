@@ -1,4 +1,5 @@
 import 'package:chatapp/models/user_model.dart';
+import 'package:chatapp/screens/HomePages/user_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -98,97 +99,111 @@ class _AllContactsPageState extends State<AllContactsPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 30,
-                                    backgroundImage: user
-                                            .profilePictureURL.isNotEmpty
-                                        ? NetworkImage(user.profilePictureURL)
-                                        : const AssetImage('assets/images.png')
-                                            as ImageProvider,
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          user.username,
-                                          style: GoogleFonts.lato(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  // ignore: use_build_context_synchronously
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => UserProfilePage(
+                                            userId: user.uid,
+                                          )),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 30,
+                                      backgroundImage: user
+                                              .profilePictureURL.isNotEmpty
+                                          ? NetworkImage(user.profilePictureURL)
+                                          : const AssetImage(
+                                                  'assets/images.png')
+                                              as ImageProvider,
+                                    ),
+                                    const SizedBox(width: 15),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            user.username,
+                                            style: GoogleFonts.lato(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          user.email,
-                                          style: GoogleFonts.lato(
-                                            fontSize: 14,
-                                            color: Colors.grey[600],
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            user.email,
+                                            style: GoogleFonts.lato(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Row(
-                                          children: [
-                                            if (user.isOnline)
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.circle,
-                                                    color: Colors.green,
-                                                    size: 12,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Online',
-                                                    style: GoogleFonts.lato(
-                                                      fontSize: 12,
-                                                      color: Colors.grey[700],
+                                          const SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              if (user.isOnline)
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.circle,
+                                                      color: Colors.green,
+                                                      size: 12,
                                                     ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Online',
+                                                      style: GoogleFonts.lato(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              else
+                                                Text(
+                                                  'Last Login: ${DateFormat('dd MMM yyyy, hh:mm a').format(user.lastLogin)}',
+                                                  style: GoogleFonts.lato(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[500],
                                                   ),
-                                                ],
-                                              )
-                                            else
-                                              Text(
-                                                'Last Login: ${DateFormat('dd MMM yyyy, hh:mm a').format(user.lastLogin)}',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[500],
                                                 ),
-                                              ),
-                                          ],
-                                        )
-                                      ],
+                                            ],
+                                          )
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      isContact
-                                          ? Icons.remove_circle
-                                          : Icons.add_circle,
-                                      color:
-                                          isContact ? Colors.red : Colors.blue,
+                                    IconButton(
+                                      icon: Icon(
+                                        isContact
+                                            ? Icons.remove_circle
+                                            : Icons.add_circle,
+                                        color: isContact
+                                            ? Colors.red
+                                            : Colors.blue,
+                                      ),
+                                      onPressed: () async {
+                                        if (isContact) {
+                                          await userProvider
+                                              .removeFromContacts(user.uid);
+                                        } else {
+                                          await userProvider
+                                              .addToContacts(user.uid);
+                                        }
+                                        // Refresh the user contacts list
+                                        setState(() {
+                                          userContactsFuture =
+                                              userProvider.loadUserContacts();
+                                        });
+                                      },
                                     ),
-                                    onPressed: () async {
-                                      if (isContact) {
-                                        await userProvider
-                                            .removeFromContacts(user.uid);
-                                      } else {
-                                        await userProvider
-                                            .addToContacts(user.uid);
-                                      }
-                                      // Refresh the user contacts list
-                                      setState(() {
-                                        userContactsFuture =
-                                            userProvider.loadUserContacts();
-                                      });
-                                    },
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           );

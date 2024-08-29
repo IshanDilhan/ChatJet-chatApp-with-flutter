@@ -1,8 +1,9 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:chatapp/providers/ai_chat_image_provider.dart';
-import 'package:chatapp/screens/add_image_page.dart';
+import 'package:chatapp/screens/Chatjet%20AI%20pages/add_image_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -358,6 +359,9 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
                     }
                   },
                 ),
+                const SizedBox(
+                  height: 30,
+                )
               ],
             ),
           ),
@@ -370,33 +374,53 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
     return Align(
       alignment:
           message.isFromUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: message.isFromUser ? Colors.blueAccent : Colors.grey[300],
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (message.image != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: Image.file(
-                  message.image!,
-                  width: 200,
-                  height: 200,
-                  fit: BoxFit.cover,
+      child: GestureDetector(
+        onDoubleTap: () {
+          Clipboard.setData(ClipboardData(text: message.text!));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Text copied to clipboard'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: message.text!));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Text copied to clipboard'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 5),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: message.isFromUser ? Colors.blueAccent : Colors.grey[300],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (message.image != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 5),
+                  child: Image.file(
+                    message.image!,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              Text(
+                message.text,
+                style: TextStyle(
+                  color: message.isFromUser ? Colors.white : Colors.black87,
                 ),
               ),
-            Text(
-              message.text,
-              style: TextStyle(
-                color: message.isFromUser ? Colors.white : Colors.black87,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

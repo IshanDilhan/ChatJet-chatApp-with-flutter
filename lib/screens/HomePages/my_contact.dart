@@ -1,5 +1,6 @@
 import 'package:chatapp/controlers/chat_controller.dart';
 import 'package:chatapp/models/user_model.dart'; // Import UserModel
+import 'package:chatapp/screens/HomePages/user_profile_page.dart';
 import 'package:flutter/material.dart'; // Import Flutter Material package
 import 'package:intl/intl.dart'; // Import intl package for date formatting
 import 'package:provider/provider.dart'; // Import provider package for state management
@@ -119,104 +120,116 @@ class _MyContactsPageState extends State<MyContactsPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Row(
-                              children: [
-                                // Profile picture
-                                CircleAvatar(
-                                  radius: 30,
-                                  backgroundImage: user
-                                          .profilePictureURL.isNotEmpty
-                                      ? NetworkImage(user
-                                          .profilePictureURL) // Load profile picture
-                                      : const AssetImage('assets/images.png')
-                                          as ImageProvider, // Default image
-                                ),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Username
-                                      Text(
-                                        user.username,
-                                        style: GoogleFonts.lato(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      // Email
-                                      Text(
-                                        user.email,
-                                        style: GoogleFonts.lato(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      // Online status or last login
-                                      SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          children: [
-                                            if (user.isOnline)
-                                              Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.circle,
-                                                    color: Colors.green,
-                                                    size: 12,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Online',
-                                                    style: GoogleFonts.lato(
-                                                      fontSize: 12,
-                                                      color: Colors.grey[700],
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
-                                            else
-                                              Text(
-                                                'Last Login: ${DateFormat('dd MMM yyyy, hh:mm a').format(user.lastLogin)}',
-                                                style: GoogleFonts.lato(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[500],
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      )
-                                    ],
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => UserProfilePage(
+                                          userId: user.uid,
+                                        )),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Row(
+                                children: [
+                                  // Profile picture
+                                  CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: user
+                                            .profilePictureURL.isNotEmpty
+                                        ? NetworkImage(user
+                                            .profilePictureURL) // Load profile picture
+                                        : const AssetImage('assets/images.png')
+                                            as ImageProvider, // Default image
                                   ),
-                                ),
-                                // Button for sending a message
-                                IconButton(
-                                  icon: const Icon(Icons.message,
-                                      color: Colors.blue),
-                                  onPressed: () {
-                                    chatController.startChat(user);
-                                  },
-                                ),
-                                // Button for removing the contact
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle,
-                                      color: Colors.red),
-                                  onPressed: () async {
-                                    await userProvider
-                                        .removeFromContacts(user.uid);
-                                    // Refresh the contacts list after removal
-                                    setState(() {
-                                      userContactsFuture =
-                                          userProvider.loadUserContacts();
-                                    });
-                                  },
-                                ),
-                              ],
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Username
+                                        Text(
+                                          user.username,
+                                          style: GoogleFonts.lato(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        // Email
+                                        Text(
+                                          user.email,
+                                          style: GoogleFonts.lato(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        // Online status or last login
+                                        SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: [
+                                              if (user.isOnline)
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.circle,
+                                                      color: Colors.green,
+                                                      size: 12,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Online',
+                                                      style: GoogleFonts.lato(
+                                                        fontSize: 12,
+                                                        color: Colors.grey[700],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                              else
+                                                Text(
+                                                  'Last Login: ${DateFormat('dd MMM yyyy, hh:mm a').format(user.lastLogin)}',
+                                                  style: GoogleFonts.lato(
+                                                    fontSize: 12,
+                                                    color: Colors.grey[500],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                  // Button for sending a message
+                                  IconButton(
+                                    icon: const Icon(Icons.message,
+                                        color: Colors.blue),
+                                    onPressed: () {
+                                      chatController.startChat(user);
+                                    },
+                                  ),
+                                  // Button for removing the contact
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle,
+                                        color: Colors.red),
+                                    onPressed: () async {
+                                      await userProvider
+                                          .removeFromContacts(user.uid);
+                                      // Refresh the contacts list after removal
+                                      setState(() {
+                                        userContactsFuture =
+                                            userProvider.loadUserContacts();
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         );

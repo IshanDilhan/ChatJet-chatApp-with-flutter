@@ -1,3 +1,10 @@
+to set  login with google first add path variable this C:\Program Files\Android\Android Studio\jre\bin\
+after run this keytool -list -v -keystore "C:\Users\user\.android\debug.keystore" -alias androiddebugkey -storepass android -keypass android
+and get SHA1 and add it to firbase console
+
+to bild apk run flutter build apk --split-per-abi
+
+
 chats
   └── chatId
        ├── chatName (optional, for group chats)

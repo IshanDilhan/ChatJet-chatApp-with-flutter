@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:chatapp/models/status_model.dart';
 import 'package:uuid/uuid.dart';
@@ -144,7 +143,7 @@ class StatusProvider with ChangeNotifier {
       _logger.i('Current time: $now');
 
       // Define cutoff time for 24 hours ago
-      final cutoff = now.subtract(Duration(hours: 24));
+      final cutoff = now.subtract(const Duration(hours: 24));
       _logger.i('Cutoff time (24 hours ago): $cutoff');
 
       // List to hold valid statuses

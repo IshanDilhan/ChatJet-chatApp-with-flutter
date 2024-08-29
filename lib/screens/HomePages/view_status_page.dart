@@ -100,7 +100,7 @@ class _ViewStatusScreenState extends State<ViewStatusScreen> {
                     ),
                     // Status text
                     Positioned(
-                      bottom: 20,
+                      bottom: 70,
                       left: 16,
                       right: 16,
                       child: Container(

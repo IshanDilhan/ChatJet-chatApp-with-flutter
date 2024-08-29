@@ -1,6 +1,7 @@
 import 'package:chatapp/screens/HomePages/add_status_page.dart';
 import 'package:chatapp/screens/HomePages/view_status_page.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:chatapp/providers/status_provider.dart';
@@ -144,17 +145,23 @@ class _StatusScreenState extends State<StatusScreen> {
                   itemCount: statusProvider.statuses.length,
                   itemBuilder: (context, index) {
                     final status = statusProvider.statuses[index];
+
+                    // Safely access the image URL, defaulting to a placeholder if necessary
+                    final imageUrl = (status.statusImageUrls != null &&
+                            status.statusImageUrls!.isNotEmpty)
+                        ? status.statusImageUrls!
+                            .first // or you could use index if appropriate
+                        : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp';
+
                     return ListTile(
                       leading: CircleAvatar(
                         radius: 30,
-                        backgroundImage: NetworkImage(
-                          status.statusImageUrls?[index] ??
-                              'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp',
-                        ),
+                        backgroundImage: NetworkImage(imageUrl),
                       ),
                       title: Text(status.username),
                       subtitle: Text(
-                          "last status at ${status.timestamp.hour}:${status.timestamp.minute}"),
+                        "Last status at ${DateFormat('hh:mm a').format(status.timestamp)}",
+                      ),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -170,7 +177,7 @@ class _StatusScreenState extends State<StatusScreen> {
                   },
                 );
               },
-            ),
+            )
           ],
         ),
       ),

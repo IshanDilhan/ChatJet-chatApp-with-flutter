@@ -55,10 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    try {
-      final chatCollection = FirebaseFirestore.instance.collection('chats');
-      final chatSnapshots = await chatCollection.get();
-
+    final chatCollection = FirebaseFirestore.instance.collection('chats');
+    chatCollection.snapshots().listen((chatSnapshots) async {
       final fetchedChats = <ChatModel>[];
       final allParticipantIds = <String>{};
 
@@ -91,9 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       _logger.i('Fetched ${chats.length} chats with participant details.');
-    } catch (e) {
-      _logger.e('Error fetching chats: $e');
-    }
+    }).onError((e) {
+      _logger.e('Error listening to chat updates: $e');
+    });
   }
 
   // Function to fetch user details based on a list of user IDs
