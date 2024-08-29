@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:chatapp/models/status_model.dart';
 import 'package:uuid/uuid.dart';
@@ -15,7 +16,7 @@ class StatusProvider with ChangeNotifier {
   final StorageController _storageController = StorageController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<StatusModel> _statuses = [];
-  late StatusModel? _myStatus;
+  StatusModel? _myStatus;
   String _statusImageUrl = '';
   XFile? _pickedFile;
   final ImagePicker _picker = ImagePicker();
@@ -117,8 +118,13 @@ class StatusProvider with ChangeNotifier {
   }
 
   // Function to create and save a new status
+  String formatCurrentTime(DateTime dateTime) {
+    // Format the current time in the same format as the database
+    return dateTime.toIso8601String().replaceFirst('T', ' ').split('.')[0];
+  }
 
   // Function to fetch all statuses
+
   Future<void> fetchStatuses() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -127,80 +133,112 @@ class StatusProvider with ChangeNotifier {
         return;
       }
 
+      _logger.i('Fetching all statuses from the controller...');
+
       // Fetch all statuses from the controller
       final allStatuses = await _statusController.getStatuses();
+      _logger.i('Fetched ${allStatuses.length} statuses.');
 
-      // Filter out statuses older than 24 hours
+      // Get the current time
       final now = DateTime.now();
-      final validStatuses = allStatuses.where((status) {
-        final statusTimestamp =
-            status.timestamp; // Assuming timestamp is already a DateTime
-        return now.difference(statusTimestamp).inHours < 24;
-      }).toList();
+      _logger.i('Current time: $now');
 
-      // Find the current user's status
-      final myStatus = validStatuses.cast<StatusModel?>().firstWhere(
-            (status) => status?.userId == user.uid,
-            orElse: () => null, // Return null if no status is found.
-          );
-      _logger.i('fretched valid status');
+      // Define cutoff time for 24 hours ago
+      final cutoff = now.subtract(Duration(hours: 24));
+      _logger.i('Cutoff time (24 hours ago): $cutoff');
 
-      // If a status is found, assign it to _myStatus
-      if (myStatus != null) {
-        _myStatus = myStatus;
+      // List to hold valid statuses
+      List<StatusModel> validStatuses = [];
+
+      for (final status in allStatuses) {
+        try {
+          _logger.i('Processing status with ID: ${status.statusId}');
+
+          // Parse the timestamp from the database
+          final statusTimestamp = DateTime.parse(status.timestamp.toString());
+          _logger.i('Parsed timestamp for status: $statusTimestamp');
+
+          // Check if the status is less than 24 hours old
+          if (statusTimestamp.isAfter(cutoff)) {
+            _logger.i('Status is valid (less than 24 hours old).');
+            validStatuses.add(status);
+          } else {
+            // Delete old statuses
+            await _firestore.collection('status').doc(status.statusId).delete();
+            _logger.i('Deleted old status: ${status.statusId}');
+          }
+        } catch (e) {
+          _logger.e('Error processing status with ID: ${status.statusId} - $e');
+        }
       }
 
-      // Log the user's status (if it exists)
-      _logger
-          .i(_myStatus?.toString() ?? 'No status found for the current user.');
+      // Log the number of valid statuses
+      _logger.i('Number of valid statuses: ${validStatuses.length}');
+
+      // Find the current user's status
+      _logger.i('Number of valid statuses: ${validStatuses.length}');
+
+      // Find the current user's status
+      final myStatus = validStatuses
+          .where((status) => status.userId == user.uid)
+          .toList()
+          .firstOrNull;
+
+      if (myStatus != null) {
+        _myStatus = myStatus;
+        _logger.i('User status found and set.');
+      } else {
+        _myStatus = null;
+        _logger.i('No status found for the current user.');
+      }
 
       // Filter out the current user's status from the list
       _statuses =
           validStatuses.where((status) => status.userId != user.uid).toList();
+      _logger.i('Filtered out the current user\'s status from the list.');
 
       // Notify listeners to update the UI
       notifyListeners();
-
-      _logger.i('Statuses fetched and filtered successfully.');
+      _logger.i('UI update notified successfully.');
     } catch (e) {
       _logger.e('Failed to fetch statuses: $e');
-      // Optionally, handle errors, e.g., by showing a message to the user
     }
   }
 
-  Future<void> deleteOldStatuses() async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        _logger.i('No user is signed in.');
-        return;
-      }
+  // Future<void> deleteOldStatuses() async {
+  //   try {
+  //     User? user = FirebaseAuth.instance.currentUser;
+  //     if (user == null) {
+  //       _logger.i('No user is signed in.');
+  //       return;
+  //     }
 
-      // Fetch all statuses from the controller
-      final allStatuses = await _statusController.getStatuses();
+  //     // Fetch all statuses from the controller
+  //     final allStatuses = await _statusController.getStatuses();
 
-      // Filter out statuses older than 24 hours
-      final now = DateTime.now();
-      final oldStatuses = allStatuses.where((status) {
-        final statusTimestamp =
-            status.timestamp; // Assuming timestamp is already a DateTime
-        return now.difference(statusTimestamp).inHours >= 24;
-      }).toList();
+  //     // Filter out statuses older than 24 hours
+  //     final now = DateTime.now();
+  //     final oldStatuses = allStatuses.where((status) {
+  //       final statusTimestamp =
+  //           status.timestamp; // Assuming timestamp is already a DateTime
+  //       return now.difference(statusTimestamp).inHours >= 24;
+  //     }).toList();
 
-      // Delete old statuses from the database
-      for (final status in oldStatuses) {
-        await _statusController.deleteStatus(
-            status.statusId); // Implement this method in your controller
-      }
+  //     // Delete old statuses from the database
+  //     for (final status in oldStatuses) {
+  //       await _statusController.deleteStatus(
+  //           status.statusId); // Implement this method in your controller
+  //           await deleteStatusItem(status.statusId)
+  //     }
 
-      // Fetch statuses again to update the UI
-      await fetchStatuses();
+  //     // Fetch statuses again to update the UI
+  //     await fetchStatuses();
 
-      _logger.i('Old statuses deleted successfully.');
-    } catch (e) {
-      _logger.e('Failed to delete old statuses: $e');
-    }
-  }
+  //     _logger.i('Old statuses deleted successfully.');
+  //   } catch (e) {
+  //     _logger.e('Failed to delete old statuses: $e');
+  //   }
+  // }
 
   Future<void> deleteStatusItem(int index) async {
     User? user = FirebaseAuth.instance.currentUser;

@@ -1,4 +1,3 @@
-import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/HomePages/add_status_page.dart';
 import 'package:chatapp/screens/HomePages/view_status_page.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +20,7 @@ class _StatusScreenState extends State<StatusScreen> {
   @override
   void initState() {
     super.initState();
+
     Provider.of<StatusProvider>(context, listen: false).fetchStatuses();
     // Call the getStatus method
   }
@@ -29,10 +29,12 @@ class _StatusScreenState extends State<StatusScreen> {
   Widget build(BuildContext context) {
     // Access the StatusProvider
     final statusProvider = Provider.of<StatusProvider>(context);
-    final userImage = Provider.of<UserProvider>(context)
-            .user
-            ?.profilePictureURL ??
-        'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp';
+    final String? imageUrl = statusProvider.mystatus != null
+        ? (statusProvider.mystatus!.statusImageUrls?.isNotEmpty ?? false
+            ? statusProvider.mystatus!.statusImageUrls?.last
+            : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp')
+        : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Status"),
@@ -47,12 +49,8 @@ class _StatusScreenState extends State<StatusScreen> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: NetworkImage(
-                      userImage.isNotEmpty == true
-                          ? userImage
-                          : 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp', // Ensure this URL is a valid image URL
-                      scale: 1.0, // Adjust the scale if necessary
-                    ), // Placeholder image
+                    backgroundImage:
+                        NetworkImage(imageUrl!, scale: 1), // Placeholder image
                   ),
                   const Positioned(
                     bottom: 0,
@@ -73,8 +71,7 @@ class _StatusScreenState extends State<StatusScreen> {
               subtitle: const Text("Tap to add status update"),
               onTap: () async {
                 // Check if myStatus is available
-                if (statusProvider.mystatus!.statusImageUrls?.isNotEmpty ==
-                    true) {
+                if (statusProvider.mystatus != null) {
                   // If myStatus exists, navigate to ViewStatusScreen
                   Navigator.push(
                     context,
@@ -91,8 +88,7 @@ class _StatusScreenState extends State<StatusScreen> {
                     await statusProvider.fetchStatuses();
 
                     // Check again if myStatus is available after fetching
-                    if (statusProvider.mystatus!.statusImageUrls?.isNotEmpty ==
-                        true) {
+                    if (statusProvider.mystatus != null) {
                       Navigator.push(
                         // ignore: use_build_context_synchronously
                         context,

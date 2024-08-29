@@ -29,7 +29,7 @@ class StatusController {
   Future<void> deleteStatus(String statusId) async {
     try {
       // Reference to the statuses collection
-      final statusRef = _firestore.collection('statuses').doc(statusId);
+      final statusRef = _firestore.collection('status').doc(statusId);
 
       // Delete the status document
       await statusRef.delete();

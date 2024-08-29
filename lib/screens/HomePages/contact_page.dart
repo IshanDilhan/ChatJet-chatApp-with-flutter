@@ -29,7 +29,7 @@ class _ContactPageState extends State<ContactPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Color.fromARGB(255, 90, 91, 93),
           elevation: 2, // Reduced elevation
           toolbarHeight: 36, // Reduced height
           bottom: PreferredSize(

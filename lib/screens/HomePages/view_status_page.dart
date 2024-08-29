@@ -1,3 +1,4 @@
+import 'package:chatapp/controlers/status_controller.dart';
 import 'package:chatapp/providers/status_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:chatapp/models/status_model.dart';
@@ -21,6 +22,7 @@ class ViewStatusScreen extends StatefulWidget {
 
 class _ViewStatusScreenState extends State<ViewStatusScreen> {
   late PageController _pageController;
+  StatusController statusController = StatusController();
 
   @override
   void initState() {
@@ -44,8 +46,18 @@ class _ViewStatusScreenState extends State<ViewStatusScreen> {
         widget.status.statusImageUrls?.removeAt(index);
         widget.status.statusText?.removeAt(index);
       });
+      if ((widget.status.statusImageUrls?.isEmpty ?? true) &&
+          (widget.status.statusText?.isEmpty ?? true)) {
+        // If all fields are empty, delete the whole status document
+        await statusController.deleteStatus(widget.status.statusId);
+        Logger().i(
+            'Status document with ID ${widget.status.statusId} deleted successfully.');
+      }
 
       Logger().i('Status item deleted successfully.');
+
+      Logger().i('Status item deleted successfully.');
+
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
     } catch (e) {

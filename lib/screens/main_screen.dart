@@ -1,4 +1,3 @@
-import 'package:chatapp/screens/AI%20chat%20Pages/ai_chat_page.dart';
 import 'package:chatapp/screens/ChatPages/home_page.dart';
 import 'package:chatapp/screens/HomePages/status_screen.dart';
 import 'package:chatapp/screens/gemini_chat.dart';
@@ -19,7 +18,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _screens = [
     const HomeScreen(), // Pass parameters later
-    GeminiChatPage(),
+    const GeminiChatPage(),
     const StatusScreen(),
     const ContactPage(),
     const ProfileScreen(),

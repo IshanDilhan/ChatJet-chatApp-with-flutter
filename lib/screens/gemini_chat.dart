@@ -4,6 +4,7 @@ import 'package:chatapp/providers/ai_chat_image_provider.dart';
 import 'package:chatapp/screens/add_image_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
@@ -262,11 +263,36 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
     });
   }
 
+  void _clearChat() {
+    setState(() {
+      _messages.clear();
+    });
+    _logger.i("Chat cleared");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ChatJet AI'),
+        title: Text(
+          'ChatJet AI',
+          style: GoogleFonts.roboto(
+            textStyle: TextStyle(
+              color: Color.fromARGB(255, 59, 60, 59),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.delete_rounded,
+              color: Color.fromARGB(255, 223, 79, 79),
+            ),
+            onPressed: _clearChat,
+          ),
+        ],
       ),
       body: Column(
         children: [

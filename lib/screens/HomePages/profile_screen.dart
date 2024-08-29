@@ -361,14 +361,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Contacts: ${fretcheduser.user?.contacts.isNotEmpty == true ? fretcheduser.user!.contacts.join(', ') : 'Update contacts'}',
-                style: GoogleFonts.acme(
-                  fontSize: 18,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
                 'Last login: ${fretcheduser.user?.lastLogin != null ? DateFormat('MMMM d, yyyy h:mm a').format(fretcheduser.user!.lastLogin) : 'Not specified'}',
                 style: GoogleFonts.acme(
                   fontSize: 18,
