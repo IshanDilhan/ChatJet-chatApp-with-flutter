@@ -6,6 +6,7 @@ import 'package:chatapp/screens/ChatPages/chat_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -60,32 +61,46 @@ class ChatController {
     }
   }
 
-  Future<MessageModel?> sendMessage(
-      String chatId, String senderId, String text) async {
+  Future<MessageModel?> sendMessage(String chatId, String senderId, String text,
+      bool isimage, String imageurl) async {
     if (text.isEmpty) return null; // Early return if the message text is empty
 
     final messageId = const Uuid().v4(); // Generate a unique ID for the message
-// Get the current time in UTC and convert it to Sri Lanka time (UTC+5:30)
+    //Get the current time in UTC and convert it to Sri Lanka time (UTC+5:30)
+    final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+    Logger().f(currentTimeZone);
     DateTime now = DateTime.now();
-    DateTime sriLankaTime = now.toUtc().add(Duration(hours: 7, minutes: 30));
 
 // Use Firestore's Timestamp for consistency
-    final Timestamp firestoreTimestamp = Timestamp.fromDate(sriLankaTime);
-
-    final message = MessageModel(
-      messageId: messageId,
-      senderId: currentuser!.uid,
-      text: text,
-      timestamp:
-          firestoreTimestamp, // Use Firestore's Timestamp for consistency
-      status: 'sent',
-      deleteForEveryone: false,
-      edited: false,
-    );
-
+    final Timestamp firestoreTimestamp = Timestamp.fromDate(now);
+    MessageModel message;
+    if (isimage) {
+      message = MessageModel(
+        messageId: messageId,
+        senderId: currentuser!.uid,
+        text: imageurl,
+        mediaURL: imageurl,
+        timestamp:
+            firestoreTimestamp, // Use Firestore's Timestamp for consistency
+        status: 'sent',
+        deleteForEveryone: false,
+        edited: false,
+      );
+    } else {
+      message = MessageModel(
+        messageId: messageId,
+        senderId: currentuser!.uid,
+        text: text,
+        timestamp:
+            firestoreTimestamp, // Use Firestore's Timestamp for consistency
+        status: 'sent',
+        deleteForEveryone: false,
+        edited: false,
+      );
+    }
     try {
       // Add the message to the Firestore collection
-      chatProvider.addMessage(chatId, message, senderId);
+      chatProvider.addMessage(chatId, message, senderId, isimage);
 
       Logger().i('Message sent');
 

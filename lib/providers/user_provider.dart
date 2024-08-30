@@ -363,6 +363,27 @@ class UserProvider with ChangeNotifier {
       _logger.e("Error removing contact: $e");
     }
   }
+
+  void setUserOnline() async {
+    final userRef =
+        FirebaseFirestore.instance.collection('users').doc(_user!.uid);
+    await userRef.update({
+      'isOnline': true,
+      'lastLogin':
+          Timestamp.now().toString(), // Optional: To track last activity time
+    });
+  }
+
+// Function to set user status to offline
+  void setUserOffline() async {
+    final userRef =
+        FirebaseFirestore.instance.collection('users').doc(_user!.uid);
+    await userRef.update({
+      'isOnline': false,
+      'lastLogin':
+          Timestamp.now().toString(), // Optional: To track last activity time
+    });
+  }
 }
 
 void _showErrorDialog(BuildContext context, String message) {

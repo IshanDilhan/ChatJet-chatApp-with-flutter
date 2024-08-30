@@ -1,11 +1,15 @@
 import 'dart:async'; // Import for StreamSubscription
+import 'dart:io';
 import 'package:chatapp/controlers/chat_controller.dart';
+import 'package:chatapp/controlers/storage_controller.dart';
 import 'package:chatapp/models/chat_model.dart';
 import 'package:chatapp/models/massage_model.dart';
 import 'package:chatapp/screens/HomePages/user_profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -39,8 +43,7 @@ class _ChatPageState extends State<ChatPage> {
   late ChatProvider _chatProvider;
   List<MessageModel> _messages = [];
   User? currentUser = FirebaseAuth.instance.currentUser;
-  StreamSubscription<QuerySnapshot>? _messageSubscription;
-  Logger _logger = Logger();
+  final Logger _logger = Logger();
 
   @override
   void initState() {
@@ -114,34 +117,6 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // Delete a message
-  Future<void> _deleteMessage(String messageId, bool deleteForEveryone) async {
-    try {
-      if (deleteForEveryone) {
-        // Delete message from Firestore for all participants
-        await FirebaseFirestore.instance
-            .collection('chats')
-            .doc(widget.chatId)
-            .update({
-          'messages.$messageId': FieldValue.delete(),
-        });
-      } else {
-        // Set a flag indicating that the message has been deleted by the current user
-        await FirebaseFirestore.instance
-            .collection('chats')
-            .doc(widget.chatId)
-            .update({
-          'messages.$messageId.deletedBy': currentUser!.uid,
-        });
-      }
-
-      // Remove the message from the UI
-      setState(() {
-        _messages.removeWhere((message) => message.messageId == messageId);
-      });
-    } catch (e) {
-      _logger.e('Error deleting message: $e');
-    }
-  }
 
   Future<void> deleteAllChat() async {
     try {
@@ -152,6 +127,7 @@ class _ChatPageState extends State<ChatPage> {
           .delete();
 
       // Remove the chat from the provider
+      // ignore: use_build_context_synchronously
       Provider.of<ChatProvider>(context, listen: false)
           .removeChat(widget.chatId);
 
@@ -166,18 +142,140 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  String? filepath;
+  String? profileImageUrl;
+  XFile? pickedFile;
+  final ImagePicker _picker = ImagePicker();
+  Future<String> selectImage() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile != null) {
+        Logger().i('Image selected: ${pickedFile?.path}');
+
+        File? croppedImg =
+            await cropImage(context, File(pickedFile?.path as String));
+        if (croppedImg != null) {
+          Logger().i("Cropped correctly: ${croppedImg.path}");
+          setState(() {
+            filepath = croppedImg.path;
+          });
+
+          final storageController = StorageController();
+          final downloadURL = await storageController.uploadImage(
+              'Usersimages', "${user?.uid}.jpg", croppedImg);
+
+          if (downloadURL.isNotEmpty) {
+            Logger().i("Image uploaded successfully: $downloadURL");
+
+            // Prepare message data
+          } else {
+            Logger().e("Failed to upload image");
+          }
+          return downloadURL;
+        } else {
+          Logger().i("Cropping canceled or failed.");
+          return '';
+        }
+      } else {
+        Logger().i('Image selection was cancelled or failed.');
+        return '';
+      }
+    } catch (e) {
+      Logger().e('Error selecting image: $e');
+      return '';
+    }
+  }
+
+  Future<File?> cropImage(BuildContext context, File file) async {
+    try {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg,
+        maxHeight: 512,
+        maxWidth: 512,
+        compressQuality: 60,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: const Color.fromARGB(255, 158, 39, 146),
+            toolbarWidgetColor: Colors.white,
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(),
+            ],
+          ),
+          IOSUiSettings(
+            title: 'Cropper',
+            aspectRatioPresets: [
+              CropAspectRatioPreset.original,
+              CropAspectRatioPreset.square,
+              CropAspectRatioPresetCustom(), // IMPORTANT: iOS supports only one custom aspect ratio in preset list
+            ],
+          ),
+          WebUiSettings(
+            context: context,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        Logger().i('Image cropped: ${croppedFile.path}');
+        return File(croppedFile.path);
+      } else {
+        Logger().i('Image cropping was cancelled or failed.');
+        return null;
+      }
+    } catch (e) {
+      Logger().e('Error cropping image: $e');
+      return null;
+    }
+  }
+
+  Future<void> updateImageMessageFirestore(
+      String chatId, String messageId, Map<String, dynamic> messageData) async {
+    try {
+      final chatCollection = FirebaseFirestore.instance.collection('chats');
+
+      // Update the specific message document within the chat
+      await chatCollection
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .set(messageData, SetOptions(merge: true));
+
+      Logger().i('Message updated successfully in Firestore.');
+    } catch (e) {
+      Logger().e('Error updating message in Firestore: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ChatController chatcontroller = ChatController(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundImage: widget.chatterImageUrl.isNotEmpty
-                ? NetworkImage(widget.chatterImageUrl)
-                : const AssetImage('assets/images.png') as ImageProvider,
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              // ignore: use_build_context_synchronously
+              context,
+              MaterialPageRoute(
+                  builder: (context) => UserProfilePage(
+                        userId: widget.chatteruid,
+                      )),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundImage: widget.chatterImageUrl.isNotEmpty
+                  ? NetworkImage(widget.chatterImageUrl)
+                  : const AssetImage('assets/images.png') as ImageProvider,
+            ),
           ),
         ),
         title: GestureDetector(
@@ -243,16 +341,27 @@ class _ChatPageState extends State<ChatPage> {
                             ? CrossAxisAlignment.end
                             : CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            message.text ?? '',
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                          if (message.mediaURL != null &&
+                              message.mediaURL!.isNotEmpty)
+                            Image.network(
+                              message.mediaURL!,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            )
+                          else
+                            Text(
+                              message.text ?? '',
+                              style: const TextStyle(fontSize: 16),
+                            ),
                           const SizedBox(height: 5),
                           Text(
                             DateFormat('hh:mm a')
                                 .format(message.timestamp.toDate()),
                             style: TextStyle(
-                                fontSize: 10, color: Colors.grey[600]),
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                            ),
                           ),
                         ],
                       ),
@@ -266,6 +375,25 @@ class _ChatPageState extends State<ChatPage> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
+                IconButton(
+                  icon: const Icon(Icons.image),
+                  onPressed: () async {
+                    String? image = await selectImage();
+
+                    if (image.isNotEmpty) {
+                      final message = await chatcontroller.sendMessage(
+                          widget.chatId, widget.chatteruid, image, true, image);
+                      if (message != null) {
+                        setState(() {
+                          _messages.insert(0, message);
+                        });
+                        _messageController.clear();
+                        // ignore: use_build_context_synchronously
+                        FocusScope.of(context).unfocus(); // Close the keyboard
+                      }
+                    }
+                  },
+                ),
                 Expanded(
                   child: TextField(
                     controller: _messageController,
@@ -296,12 +424,13 @@ class _ChatPageState extends State<ChatPage> {
                       final text = _messageController.text.trim();
                       if (text.isNotEmpty && currentUser != null) {
                         final message = await chatcontroller.sendMessage(
-                            widget.chatId, widget.chatteruid, text);
+                            widget.chatId, widget.chatteruid, text, false, '');
                         if (message != null) {
                           setState(() {
                             _messages.insert(0, message);
                           });
                           _messageController.clear();
+                          // ignore: use_build_context_synchronously
                           FocusScope.of(context)
                               .unfocus(); // Close the keyboard
                         }
@@ -325,8 +454,8 @@ class _ChatPageState extends State<ChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.edit),
-              title: Text('copy as text'),
+              leading: const Icon(Icons.edit),
+              title: const Text('copy as text'),
               onTap: () {
                 Navigator.pop(context);
                 Clipboard.setData(ClipboardData(text: message));
@@ -339,17 +468,22 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.delete),
-              title: Text('Delete for everyone'),
+              leading: const Icon(Icons.contact_page_rounded),
+              title: const Text('See Contact'),
               onTap: () {
-                Navigator.pop(context);
-                Provider.of<ChatProvider>(context, listen: false)
-                    .deleteMessage(widget.chatId, messageId);
+                Navigator.push(
+                  // ignore: use_build_context_synchronously
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UserProfilePage(
+                            userId: widget.chatteruid,
+                          )),
+                );
               },
             ),
             ListTile(
-              leading: Icon(Icons.delete_forever),
-              title: Text('Delete all massges in both side'),
+              leading: const Icon(Icons.delete_forever),
+              title: const Text('Delete all massges in both side'),
               onTap: () {
                 Navigator.pop(context);
                 //_deleteMessage(messageId, true);
@@ -361,4 +495,12 @@ class _ChatPageState extends State<ChatPage> {
       },
     );
   }
+}
+
+class CropAspectRatioPresetCustom implements CropAspectRatioPresetData {
+  @override
+  (int, int)? get data => (2, 3);
+
+  @override
+  String get name => '2x3 (customized)';
 }

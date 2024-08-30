@@ -278,7 +278,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
         title: Text(
           'ChatJet AI',
           style: GoogleFonts.roboto(
-            textStyle: TextStyle(
+            textStyle: const TextStyle(
               color: Color.fromARGB(255, 59, 60, 59),
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -376,7 +376,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
           message.isFromUser ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
         onDoubleTap: () {
-          Clipboard.setData(ClipboardData(text: message.text!));
+          Clipboard.setData(ClipboardData(text: message.text));
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Text copied to clipboard'),
@@ -385,7 +385,7 @@ class _GeminiChatPageState extends State<GeminiChatPage> {
           );
         },
         onLongPress: () {
-          Clipboard.setData(ClipboardData(text: message.text!));
+          Clipboard.setData(ClipboardData(text: message.text));
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Text copied to clipboard'),

@@ -32,25 +32,36 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
-        Logger().i('User is signed in!');
-        Logger().i(user);
-        await Provider.of<UserProvider>(context, listen: false)
-            .updateUserOnlineStatus(user.uid, true);
+        try {
+          Logger().i('User is signed in!');
+          Logger().i(user);
 
-        Map<String, dynamic>? userInfo = await fetchUserData(user.uid);
+          // Update user online status
+          await Provider.of<UserProvider>(context, listen: false)
+              .updateUserOnlineStatus(user.uid, true);
 
-        if (userInfo != null) {
-          Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
+          // Fetch user data
+          Map<String, dynamic>? userInfo = await fetchUserData(user.uid);
+
+          if (userInfo != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignUpPage()),
+            );
+          }
+        } catch (e) {
+          // Handle any errors that occur during the process
+          Logger().e('An error occurred: $e');
+          // Optionally, you could show a dialog or snackbar to inform the user
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('An error occurred: $e')),
           );
-        } else {
-          Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => const SignUpPage()),
-          );
+          await FirebaseAuth.instance.signOut();
         }
       }
     });

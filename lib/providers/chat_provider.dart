@@ -151,8 +151,8 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addMessage(
-      String chatId, MessageModel message, String senderid) async {
+  Future<void> addMessage(String chatId, MessageModel message, String senderid,
+      bool isimage) async {
     try {
       final messageId =
           message.timestamp.toDate().millisecondsSinceEpoch.toString();
@@ -179,6 +179,7 @@ class ChatProvider with ChangeNotifier {
           'lastMessage': message.text,
           'lastMessageTimestamp': message.timestamp,
         });
+
         _chats[chatId] = newChat;
 
         _logger.i(
@@ -214,15 +215,23 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> deleteMessage(String chatId, String messageId) async {
     try {
-      await _firestore.collection('chats').doc(chatId).delete();
-      Logger().i('deleted from db');
+      // Reference to the specific chat document
+      await _firestore.collection('chats').doc(chatId).update({
+        'messages.$messageId': FieldValue.delete(),
+      });
+
+      // Update the document to remove the specific message by setting its value to FieldValue.delete()
+
+      Logger().i('Message deleted from Firestore.');
+
+      // Update the local data structure if needed
       if (_chats.containsKey(chatId)) {
         final chat = _chats[chatId]!;
         chat.messages?.remove(messageId);
         notifyListeners();
       }
     } catch (e) {
-      Logger().i('Error deleting message: $e');
+      Logger().e('Error deleting message: $e');
     }
   }
 

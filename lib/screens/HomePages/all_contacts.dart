@@ -93,23 +93,23 @@ class _AllContactsPageState extends State<AllContactsPage> {
                           bool isContact = userContacts
                               .any((contact) => contact.uid == user.uid);
 
-                          return Card(
-                            elevation: 5,
-                            margin: const EdgeInsets.symmetric(vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  // ignore: use_build_context_synchronously
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => UserProfilePage(
-                                            userId: user.uid,
-                                          )),
-                                );
-                              },
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                // ignore: use_build_context_synchronously
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => UserProfilePage(
+                                          userId: user.uid,
+                                        )),
+                              );
+                            },
+                            child: Card(
+                              elevation: 5,
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                               child: Padding(
                                 padding: const EdgeInsets.all(10.0),
                                 child: Row(
