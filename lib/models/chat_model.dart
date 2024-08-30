@@ -53,4 +53,18 @@ class ChatModel {
           ?.map((key, value) => MapEntry(key, MessageModel.fromMap(value))),
     );
   }
+  factory ChatModel.fromMapwithid(String chatId, Map<String, dynamic> map) {
+    return ChatModel(
+      chatId: chatId,
+      chatName: map['chatName'],
+      chatImageURL: map['chatImageURL'],
+      participants: List<String>.from(map['participants']),
+      adminId: map['adminId'],
+      lastMessage: map['lastMessage'],
+      lastMessageTimestamp: map['lastMessageTimestamp'],
+      chatType: map['chatType'],
+      messages: (map['messages'] as Map<String, dynamic>?)
+          ?.map((key, value) => MapEntry(key, MessageModel.fromMap(value))),
+    );
+  }
 }

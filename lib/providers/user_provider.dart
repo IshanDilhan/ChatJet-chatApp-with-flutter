@@ -367,10 +367,10 @@ class UserProvider with ChangeNotifier {
   void setUserOnline() async {
     final userRef =
         FirebaseFirestore.instance.collection('users').doc(_user!.uid);
+    String formattedLastLogin = DateTime.now().toIso8601String();
     await userRef.update({
       'isOnline': true,
-      'lastLogin':
-          Timestamp.now().toString(), // Optional: To track last activity time
+      'lastLogin': formattedLastLogin, // Optional: To track last activity time
     });
   }
 
@@ -378,10 +378,11 @@ class UserProvider with ChangeNotifier {
   void setUserOffline() async {
     final userRef =
         FirebaseFirestore.instance.collection('users').doc(_user!.uid);
+    String formattedLastLogin = DateTime.now().toIso8601String();
+
     await userRef.update({
       'isOnline': false,
-      'lastLogin':
-          Timestamp.now().toString(), // Optional: To track last activity time
+      'lastLogin': formattedLastLogin, // Optional: To track last activity time
     });
   }
 }

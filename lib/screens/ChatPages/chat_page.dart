@@ -64,6 +64,7 @@ class _ChatPageState extends State<ChatPage> {
         _messages.sort((a, b) =>
             b.timestamp.compareTo(a.timestamp)); // Sort messages by timestamp
       });
+      Logger().f(_messages);
     } catch (e) {
       Logger().i('Error fetching messages: $e');
     }
@@ -76,29 +77,25 @@ class _ChatPageState extends State<ChatPage> {
       return;
     }
 
-    final chatCollection = FirebaseFirestore.instance.collection('chats');
+    // Reference to the specific chat document
+    final chatDocument =
+        FirebaseFirestore.instance.collection('chats').doc(widget.chatId);
 
-    chatCollection.snapshots().listen((chatSnapshots) async {
+    chatDocument.snapshots().listen((chatSnapshot) {
       try {
-        final fetchedMessages = <MessageModel>[];
-
-        // Iterate over the chat documents
-        for (var doc in chatSnapshots.docs) {
-          final chatData = doc.data();
-          final chatId = doc.id;
-          final chatModel = ChatModel.fromMap(chatId, chatData);
-
-          if (chatModel.participants.contains(currentUser.uid)) {
-            // Get the messages map and convert it to a list of MessageModel
-            if (chatModel.messages != null) {
-              final messagesList = chatModel.messages!.values.toList();
-              fetchedMessages.addAll(messagesList);
-            }
-          }
+        if (!chatSnapshot.exists) {
+          _logger.w('Chat with ID ${widget.chatId} does not exist.');
+          return;
         }
 
+        final chatData = chatSnapshot.data();
+        final chatModel = ChatModel.fromMapwithid(widget.chatId, chatData!);
+
+        // Extract messages from the fetched chat model
+        final fetchedMessages = chatModel.messages?.values.toList() ?? [];
+
         // Sort messages by timestamp
-        fetchedMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        fetchedMessages.sort((b, a) => a.timestamp.compareTo(b.timestamp));
 
         // Update the state with the fetched messages
         if (mounted) {
@@ -107,9 +104,10 @@ class _ChatPageState extends State<ChatPage> {
           });
         }
 
-        _logger.i('Fetched ${_messages.length} messages for chats.');
+        _logger.i(
+            'Fetched ${_messages.length} messages for chat ${widget.chatId}.');
       } catch (e) {
-        _logger.e('Error processing chat snapshots: $e');
+        _logger.e('Error processing chat snapshot: $e');
       }
     }, onError: (e) {
       _logger.e('Error listening to chat updates: $e');
