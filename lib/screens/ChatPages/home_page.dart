@@ -83,7 +83,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (mounted) {
         setState(() {
-          chats = fetchedChats;
+          chats = fetchedChats
+            ..sort((a, b) {
+              final aTimestamp =
+                  a.lastMessageTimestamp?.toDate() ?? DateTime(0);
+              final bTimestamp =
+                  b.lastMessageTimestamp?.toDate() ?? DateTime(0);
+              return bTimestamp.compareTo(aTimestamp);
+            });
+
           this.participantDetails =
               participantDetails; // Update participantDetails
         });
@@ -180,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   filled: true,
-                  fillColor: Color.fromARGB(167, 104, 167, 218),
+                  fillColor: const Color.fromARGB(167, 104, 167, 218),
                 ),
               )
             : const Text(

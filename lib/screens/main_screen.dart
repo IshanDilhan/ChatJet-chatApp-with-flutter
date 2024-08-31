@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  Logger _logger = Logger();
+  final Logger _logger = Logger();
 
   @override
   void initState() {

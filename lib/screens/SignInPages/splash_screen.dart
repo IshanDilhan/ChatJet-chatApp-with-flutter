@@ -45,11 +45,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
           if (userInfo != null) {
             Navigator.pushReplacement(
+              // ignore: use_build_context_synchronously
               context,
               MaterialPageRoute(builder: (context) => const HomePage()),
             );
           } else {
             Navigator.pushReplacement(
+              // ignore: use_build_context_synchronously
               context,
               MaterialPageRoute(builder: (context) => const SignUpPage()),
             );
@@ -58,6 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
           // Handle any errors that occur during the process
           Logger().e('An error occurred: $e');
           // Optionally, you could show a dialog or snackbar to inform the user
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('An error occurred: $e')),
           );
