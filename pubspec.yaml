@@ -57,6 +57,9 @@ dependencies:
   flutter_timezone: ^3.0.0
   timezone: ^0.9.4
   http: ^1.2.2
+  flutter_launcher_icons: ^0.13.1
+  firebase_messaging: ^14.7.10
+  simple_icons: ^10.1.3
   
 
 dev_dependencies:
@@ -113,3 +116,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"
+  min_sdk_android: 21

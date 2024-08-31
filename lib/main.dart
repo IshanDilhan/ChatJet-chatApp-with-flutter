@@ -1,3 +1,4 @@
+import 'package:chatapp/fibaseApi.dart';
 import 'package:chatapp/firebase_options.dart';
 import 'package:chatapp/providers/ai_chat_image_provider.dart';
 import 'package:chatapp/providers/chat_provider.dart';
@@ -17,6 +18,10 @@ Future<void> main() async {
   );
   await dotenv.load(fileName: ".env");
   Gemini.init(apiKey: dotenv.env['apiKey']!);
+  FirebaseApi firebaseApi = FirebaseApi();
+  await firebaseApi.initNotifications();
+  firebaseApi.handleReceivedMessages();
+  firebaseApi.initBackgroundSettings();
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(
       create: (context) => UserProvider(),

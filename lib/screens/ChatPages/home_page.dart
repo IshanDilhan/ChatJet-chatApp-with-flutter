@@ -1,11 +1,9 @@
-import 'package:chatapp/controlers/user_controler.dart';
 import 'package:chatapp/models/chat_model.dart';
 import 'package:chatapp/models/user_model.dart';
 import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/providers/chat_provider.dart';
 import 'package:chatapp/screens/ChatPages/chat_page.dart';
 import 'package:chatapp/screens/HomePages/contact_page.dart';
-import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final Logger _logger = Logger();
   List<ChatModel> chats = [];
   Map<String, UserModel> participantDetails = {};
+  List<ChatModel> filteredChats = [];
   User? currentuser = FirebaseAuth.instance.currentUser;
+  String searchQuery = '';
+  bool ifSearch = false;
 
   @override
   void initState() {
@@ -114,39 +115,99 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _updateFilteredChats() {
+    // Add this method
+    if (searchQuery.isEmpty) {
+      filteredChats = chats;
+    } else {
+      filteredChats = chats.where((chat) {
+        final participantId = chat.participants.firstWhere(
+          (id) => id != FirebaseAuth.instance.currentUser?.uid,
+          orElse: () => '',
+        );
+        final participant = participantDetails[participantId];
+        final participantName = participant?.username.toLowerCase() ?? '';
+        return participantName.contains(searchQuery);
+      }).toList();
+    }
+  }
+
+  void _showlogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure Do you want Logout?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Logout'),
+              onPressed: () async {
+                Provider.of<UserProvider>(context, listen: false)
+                    .logout(context);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    _updateFilteredChats();
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        title: const Text(
-          "ChatJet Messages",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        title: ifSearch
+            ? TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value.toLowerCase(); // Update search query
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search contacts...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  filled: true,
+                  fillColor: Color.fromARGB(167, 104, 167, 218),
+                ),
+              )
+            : const Text(
+                "ChatJet Messages",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(
+              ifSearch
+                  ? Icons.close
+                  : Icons.search, // Change icon based on search state
+            ),
             onPressed: () {
-              // Add search functionality here
+              setState(() {
+                ifSearch = !ifSearch; // Toggle search field visibility
+                if (!ifSearch) {
+                  searchQuery =
+                      ''; // Clear search query when hiding search field
+                }
+              });
             },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              final userController = UserController();
-              try {
-                await userController.signOut();
-                Navigator.pushReplacement(
-                  // ignore: use_build_context_synchronously
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              } catch (error) {
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logout failed: $error')),
-                );
-              }
+              _showlogoutConfirmationDialog(context);
             },
           ),
         ],
@@ -154,9 +215,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer<ChatProvider>(
         builder: (context, chatProvider, child) {
           return ListView.builder(
-            itemCount: chats.length,
+            itemCount: filteredChats.length, // Use filteredChats
             itemBuilder: (context, index) {
-              final chat = chats[index];
+              final chat = filteredChats[index]; // Use filteredChats
 
               // Extract the first participant ID that is not the current user
               final participantId = chat.participants.firstWhere(

@@ -1,4 +1,5 @@
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,9 @@ class UserProvider with ChangeNotifier {
   List<UserModel> _allUsers = [];
 
   User? currectuser = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   UserModel? get user => _user;
   List<UserModel> get userContacts => _userContacts;
@@ -110,6 +114,32 @@ class UserProvider with ChangeNotifier {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to update user details.')),
       );
+    }
+  }
+
+  Future<void> initializeFCMToken() async {
+    // Request permission for iOS devices
+    await _firebaseMessaging.requestPermission();
+
+    // Get the FCM token and save it in Firestore
+    String? token = await _firebaseMessaging.getToken();
+    if (token != null) {
+      _saveTokenToDatabase(token);
+      Logger().f('token saved');
+    }
+
+    // Listen to token refresh
+    FirebaseMessaging.instance.onTokenRefresh.listen(_saveTokenToDatabase);
+    Logger().f('initialized');
+  }
+
+  void _saveTokenToDatabase(String token) async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final userRef = _firestore.collection('users').doc(user.uid);
+      await userRef.update({
+        'fcmToken': token,
+      });
     }
   }
 
@@ -228,13 +258,6 @@ class UserProvider with ChangeNotifier {
 
   Future<void> logout(BuildContext context) async {
     try {
-      User? currentUser = FirebaseAuth.instance.currentUser;
-
-      if (currentUser != null) {
-        await Provider.of<UserProvider>(context, listen: false)
-            .updateUserOnlineStatus(currentUser.uid, false);
-      }
-
       await FirebaseAuth.instance.signOut();
       _logger.i("User logged out successfully");
 

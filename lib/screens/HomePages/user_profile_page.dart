@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chatapp/models/user_model.dart';
 import 'package:chatapp/providers/user_provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -107,14 +106,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
                 Text(
                   user.email,
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 22,
                     color: Colors.black,
                   ),
                 ),
                 Text(
                   user.mobileNumber,
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 22,
                     color: Colors.black,
                   ),
@@ -131,7 +130,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   children: [
                     Text(
                       'Location: ${user.location.isNotEmpty ? user.location : 'Not added'}',
-                      style: GoogleFonts.acme(
+                      style: const TextStyle(
                         fontSize: 18,
                         color: Colors.black54,
                       ),
@@ -139,7 +138,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     const SizedBox(height: 10),
                     Text(
                       'Interests: ${user.interests.isNotEmpty ? user.interests.join(', ') : 'not added'}',
-                      style: GoogleFonts.acme(
+                      style: const TextStyle(
                         fontSize: 18,
                         color: Colors.black54,
                       ),
@@ -148,7 +147,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     Text(
                       // ignore: unnecessary_null_comparison
                       'Last login: ${user.lastLogin != null ? DateFormat('MMMM d, yyyy h:mm a').format(user.lastLogin) : 'Not specified'}',
-                      style: GoogleFonts.acme(
+                      style: const TextStyle(
                         fontSize: 18,
                         color: Colors.black54,
                       ),
@@ -157,7 +156,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     Text(
                       // ignore: unnecessary_null_comparison
                       'Created: ${user.createdAt != null ? DateFormat('MMMM d, yyyy h:mm a').format(user.createdAt) : 'Not specified'}',
-                      style: GoogleFonts.acme(
+                      style: const TextStyle(
                         fontSize: 18,
                         color: Colors.black54,
                       ),

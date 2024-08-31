@@ -1,12 +1,9 @@
 import 'package:chatapp/controlers/user_controler.dart';
-import 'package:chatapp/providers/user_provider.dart';
 import 'package:chatapp/screens/SignInPages/loging_screen.dart';
 import 'package:chatapp/screens/main_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

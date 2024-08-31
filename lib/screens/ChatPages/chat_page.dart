@@ -153,6 +153,7 @@ class _ChatPageState extends State<ChatPage> {
         Logger().i('Image selected: ${pickedFile?.path}');
 
         File? croppedImg =
+            // ignore: use_build_context_synchronously
             await cropImage(context, File(pickedFile?.path as String));
         if (croppedImg != null) {
           Logger().i("Cropped correctly: ${croppedImg.path}");
@@ -250,6 +251,33 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete all messages?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () {
+                deleteAllChat(); // Call your delete function
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ChatController chatcontroller = ChatController(context);
@@ -287,21 +315,35 @@ class _ChatPageState extends State<ChatPage> {
                       )),
             );
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                widget.chatterName,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.chatterName,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.isOnline
+                        ? 'Online'
+                        : DateFormat('dd MMM yyyy, hh:mm a')
+                            .format(DateTime.parse(widget.lastSeen)),
+                    style: const TextStyle(fontSize: 14, color: Colors.white70),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                widget.isOnline
-                    ? 'Online'
-                    : DateFormat('dd MMM yyyy, hh:mm a')
-                        .format(DateTime.parse(widget.lastSeen)),
-                style: const TextStyle(fontSize: 14, color: Colors.white70),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  _showDeleteConfirmationDialog(context);
+                },
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.red[700],
+                ),
               ),
             ],
           ),
@@ -485,7 +527,7 @@ class _ChatPageState extends State<ChatPage> {
               onTap: () {
                 Navigator.pop(context);
                 //_deleteMessage(messageId, true);
-                deleteAllChat();
+                _showDeleteConfirmationDialog(context);
               },
             ),
           ],

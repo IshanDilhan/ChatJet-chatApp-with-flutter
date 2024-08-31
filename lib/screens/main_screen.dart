@@ -8,6 +8,7 @@ import 'package:chatapp/screens/Chatjet%20AI%20pages/gemini_chat.dart';
 import 'package:chatapp/screens/HomePages/contact_page.dart';
 import 'package:chatapp/screens/HomePages/profile_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:simple_icons/simple_icons.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    Provider.of<UserProvider>(context, listen: false).initializeFCMToken();
   }
 
   @override
@@ -92,22 +94,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.gas_meter_outlined),
-            label: "Ai chat",
+            icon: Icon(
+              SimpleIcons.bilibili,
+            ),
+            label: "AI chat",
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.insert_chart_outlined),
+            icon: Icon(Icons.bar_chart_rounded),
             label: "Status",
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.contacts_outlined),
+            icon: Icon(Icons.person_add_alt_outlined),
             label: "Contacts",
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
+            icon: Icon(Icons.person),
             label: "Profile",
             backgroundColor: Colors.white,
           ),

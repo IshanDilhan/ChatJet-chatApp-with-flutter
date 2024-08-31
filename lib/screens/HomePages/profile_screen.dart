@@ -9,7 +9,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -319,14 +318,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         Text(
           fretcheduser.user?.email ?? 'Loading...',
-          style: GoogleFonts.acme(
+          style: const TextStyle(
             fontSize: 22,
             color: Colors.black,
           ),
         ),
         Text(
           fretcheduser.user?.mobileNumber ?? 'Loading...',
-          style: GoogleFonts.acme(
+          style: const TextStyle(
             fontSize: 22,
             color: Colors.black,
           ),
@@ -346,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 'Location: ${fretcheduser.user?.location.isNotEmpty == true ? fretcheduser.user!.location : 'Update Location'}',
-                style: GoogleFonts.acme(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.black54,
                 ),
@@ -354,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 10),
               Text(
                 'Interests: ${fretcheduser.user?.interests.isNotEmpty == true ? fretcheduser.user!.interests.join(', ') : 'Update interests'}',
-                style: GoogleFonts.acme(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.black54,
                 ),
@@ -362,7 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 10),
               Text(
                 'Last login: ${fretcheduser.user?.lastLogin != null ? DateFormat('MMMM d, yyyy h:mm a').format(fretcheduser.user!.lastLogin) : 'Not specified'}',
-                style: GoogleFonts.acme(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.black54,
                 ),
@@ -370,7 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 10),
               Text(
                 'Created: ${fretcheduser.user?.createdAt != null ? DateFormat('MMMM d, yyyy h:mm a').format(fretcheduser.user!.createdAt) : 'Not specified'}',
-                style: GoogleFonts.acme(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Colors.black54,
                 ),
@@ -455,7 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     filled: true,
                     fillColor: const Color.fromARGB(255, 255, 255, 255),
                   ),
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 18,
                     color: Colors.black87,
                   ),
@@ -505,7 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     filled: true,
                     fillColor: const Color.fromARGB(255, 255, 255, 255),
                   ),
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 18,
                     color: Colors.black87,
                   ),
@@ -555,7 +554,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     filled: true,
                     fillColor: const Color.fromARGB(255, 255, 255, 255),
                   ),
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 18,
                     color: Colors.black87,
                   ),
@@ -604,7 +603,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     filled: true,
                     fillColor: const Color.fromARGB(255, 255, 255, 255),
                   ),
-                  style: GoogleFonts.acme(
+                  style: const TextStyle(
                     fontSize: 18,
                     color: Colors.black87,
                   ),
@@ -673,7 +672,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Text(
                       _editDetails ? "Save Changes" : "Edit Details",
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.acme(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         fontSize: 19,
@@ -848,10 +847,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           ),
                       padding: const EdgeInsets.all(0),
-                      child: Text(
+                      child: const Text(
                         "Update Password",
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.acme(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           fontSize: 19,
@@ -1028,7 +1027,7 @@ Widget _buildPasswordTextField({
         filled: true,
         fillColor: const Color.fromARGB(255, 255, 255, 255),
       ),
-      style: GoogleFonts.acme(
+      style: const TextStyle(
         fontSize: 18,
         color: Colors.black87,
       ),
