@@ -14,7 +14,8 @@ import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:chatapp/providers/chat_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Ensure this import is present
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Ensure this import is present
 
 class ChatPage extends StatefulWidget {
   final String chatId;
@@ -352,64 +353,97 @@ class _ChatPageState extends State<ChatPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isCurrentUser = message.senderId == currentUser!.uid;
+            child: _messages.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'No messages yet',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Be the first to send a message!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    reverse: true,
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      final isCurrentUser =
+                          message.senderId == currentUser!.uid;
 
-                return Align(
-                  alignment: isCurrentUser
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: GestureDetector(
-                    onLongPress: () {
-                      _showMessageOptions(message.messageId, message.text!);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 5, horizontal: 10),
-                      decoration: BoxDecoration(
-                        color:
-                            isCurrentUser ? Colors.blue[200] : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: isCurrentUser
-                            ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
-                        children: [
-                          if (message.mediaURL != null &&
-                              message.mediaURL!.isNotEmpty)
-                            Image.network(
-                              message.mediaURL!,
-                              width: 100,
-                              height: 100,
-                              fit: BoxFit.cover,
-                            )
-                          else
-                            Text(
-                              message.text ?? '',
-                              style: const TextStyle(fontSize: 16),
+                      return Align(
+                        alignment: isCurrentUser
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: GestureDetector(
+                          onLongPress: () {
+                            _showMessageOptions(
+                                message.messageId, message.text!);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: isCurrentUser
+                                  ? Colors.blue[200]
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                          const SizedBox(height: 5),
-                          Text(
-                            DateFormat('hh:mm a')
-                                .format(message.timestamp.toDate()),
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[600],
+                            child: Column(
+                              crossAxisAlignment: isCurrentUser
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                if (message.mediaURL != null &&
+                                    message.mediaURL!.isNotEmpty)
+                                  Image.network(
+                                    message.mediaURL!,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  )
+                                else
+                                  Text(
+                                    message.text ?? '',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  DateFormat('hh:mm a')
+                                      .format(message.timestamp.toDate()),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

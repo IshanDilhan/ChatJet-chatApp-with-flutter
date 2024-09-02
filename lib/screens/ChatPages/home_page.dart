@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
+import 'package:simple_icons/simple_icons.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -145,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Deletion'),
+          title: const Text('Confirm Logout'),
           content: const Text('Are you sure Do you want Logout?'),
           actions: <Widget>[
             TextButton(
@@ -222,6 +223,38 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<ChatProvider>(
         builder: (context, chatProvider, child) {
+          if (filteredChats.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    SimpleIcons.googlemessages,
+                    size: 80,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'No messages yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Please start a conversation!',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return ListView.builder(
             itemCount: filteredChats.length, // Use filteredChats
             itemBuilder: (context, index) {

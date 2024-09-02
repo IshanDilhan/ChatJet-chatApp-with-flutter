@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chatapp/models/user_model.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 
 class UserProvider with ChangeNotifier {
   UserModel? _user;
