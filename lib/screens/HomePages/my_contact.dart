@@ -34,84 +34,82 @@ class _MyContactsPageState extends State<MyContactsPage> {
       builder: (context, userProvider, child) {
         return Padding(
           padding: const EdgeInsets.all(10.0),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Search TextField
-                TextField(
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value.toLowerCase(); // Update search query
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search contacts...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+          child: Column(
+            children: [
+              // Search TextField
+              TextField(
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value.toLowerCase(); // Update search query
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Search contacts...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
-                const SizedBox(
-                    height: 10), // Space between search bar and contact list
+              ),
+              const SizedBox(
+                  height: 10), // Space between search bar and contact list
 
-                // FutureBuilder to display contacts
-                FutureBuilder<List<UserModel>>(
-                  future: userContactsFuture,
-                  builder: (context, contactsSnapshot) {
-                    if (contactsSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return const Center(
-                          child:
-                              CircularProgressIndicator()); // Show loading spinner
-                    } else if (contactsSnapshot.hasError) {
-                      return Center(
-                          child: Text(
-                              'Error: ${contactsSnapshot.error}')); // Show error message
-                    } else if (!contactsSnapshot.hasData ||
-                        contactsSnapshot.data!.isEmpty) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 50), // Space at the top
-                          const Icon(
-                            Icons.contact_page,
-                            size: 80,
-                            color: Colors.blueAccent,
+              // FutureBuilder to display contacts
+              FutureBuilder<List<UserModel>>(
+                future: userContactsFuture,
+                builder: (context, contactsSnapshot) {
+                  if (contactsSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(
+                        child:
+                            CircularProgressIndicator()); // Show loading spinner
+                  } else if (contactsSnapshot.hasError) {
+                    return Center(
+                        child: Text(
+                            'Error: ${contactsSnapshot.error}')); // Show error message
+                  } else if (!contactsSnapshot.hasData ||
+                      contactsSnapshot.data!.isEmpty) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 50), // Space at the top
+                        const Icon(
+                          Icons.contact_page,
+                          size: 80,
+                          color: Colors.blueAccent,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'You have no contacts yet..',
+                          style: GoogleFonts.lato(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
                           ),
-                          const SizedBox(height: 20),
-                          Text(
-                            'You have no contacts yet..',
-                            style: GoogleFonts.lato(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
-                            ),
-                            textAlign: TextAlign.center,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Add from all users',
+                          style: GoogleFonts.lato(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey[600],
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Add from all users',
-                            style: GoogleFonts.lato(
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.grey[600],
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      );
-                    }
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    );
+                  }
 
-                    // Filter contacts based on search query
-                    final contacts = contactsSnapshot.data!.where((user) {
-                      return user.username
-                              .toLowerCase()
-                              .contains(searchQuery) ||
-                          user.email.toLowerCase().contains(searchQuery);
-                    }).toList();
+                  // Filter contacts based on search query
+                  final contacts = contactsSnapshot.data!.where((user) {
+                    return user.username.toLowerCase().contains(searchQuery) ||
+                        user.email.toLowerCase().contains(searchQuery);
+                  }).toList();
 
-                    return ListView(
+                  return Expanded(
+                    child: ListView(
                       shrinkWrap: true,
                       children: contacts.map((user) {
                         return GestureDetector(
@@ -234,11 +232,11 @@ class _MyContactsPageState extends State<MyContactsPage> {
                           ),
                         );
                       }).toList(),
-                    );
-                  },
-                ),
-              ],
-            ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         );
       },

@@ -32,24 +32,24 @@ class _AllContactsPageState extends State<AllContactsPage> {
       builder: (context, userProvider, child) {
         return Padding(
           padding: const EdgeInsets.all(10.0),
-          child: SingleChildScrollView(
-            child: Column(children: [
-              TextField(
-                onChanged: (value) {
-                  setState(() {
-                    searchQuery = value.toLowerCase();
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search contacts...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
+          child: Column(children: [
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search contacts...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              const SizedBox(height: 10),
-              FutureBuilder<List<UserModel>>(
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: FutureBuilder<List<UserModel>>(
                 future: allUsersFuture,
                 builder: (context, allUsersSnapshot) {
                   if (allUsersSnapshot.connectionState ==
@@ -213,8 +213,8 @@ class _AllContactsPageState extends State<AllContactsPage> {
                   );
                 },
               ),
-            ]),
-          ),
+            ),
+          ]),
         );
       },
     );
